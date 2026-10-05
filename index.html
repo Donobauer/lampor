@@ -45,8 +45,13 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 .dir{font-size:12px;color:var(--amber);height:15px}
 .temps{display:none;gap:6px;margin-top:10px}
 .zone.on .temps{display:flex}
-.t{flex:1;height:30px;border-radius:9px;border:1px solid var(--amberline);background:#1D1912;display:flex;align-items:center;justify-content:center}
-.t span{width:12px;height:12px;border-radius:6px}
+.t{flex:1;height:32px;border-radius:10px;border:2px solid var(--amberline);background:#1D1912;display:flex;align-items:center;justify-content:center}
+.t.sel{border-color:#FFFFFF;background:#3A2E1D}
+.colors{display:none;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:8px}
+.zone.on .colors{display:grid}
+.c{aspect-ratio:1;border-radius:50%;border:3px solid transparent;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
+.c.sel{border-color:#FFFFFF}
+.t span{width:14px;height:14px;border-radius:7px}
 .help{margin-top:22px;font-size:12px;color:var(--mut);line-height:1.5;text-align:center}
 .setup{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
 .setup h2{margin:0 0 6px;font-size:20px}
@@ -105,7 +110,7 @@ const PAGES = [
       { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger' },
       { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten' },
       { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster' },
-      { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning' },
+      { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning', wide: true, colors: ['6129d248-3386-4ca1-b1f1-0cd9c0c57e09','3ff61ca7-4d1f-41a6-af3d-c6a7e1ecd5ed','809dc059-10e3-48b5-9dac-b9fcbd599a5b','bc6f628d-36b1-41d5-9796-d51076504d7a','27582ca7-53af-4bdc-8334-307105a857a9','03d8927a-b897-494d-9b0a-5e2666a08c5e','43664ba8-22d1-4931-b908-0b269f34cbbc','dc5e6d13-7d5b-4f92-a1f7-e20d566c5e77','e7e46f94-c970-49cd-83cc-0db131a18234'] },
     ]},
     { name: 'Övrigt', zones: [
       { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv' },
@@ -132,11 +137,13 @@ if (!PAGES.some(p => p.key === currentPage)) currentPage = 'botten';
 // Scener = flöden i Homey ("Scen – …") som startas med knapptryck
 const SCENES = [
   { label: 'Släck allt', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
+  { label: 'Tänd nere', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
   { label: 'Kväll', flow: '5c685373-58ce-4532-94ed-11891f5737e1' },
   { label: 'TV', flow: '89d79a92-b486-4a46-bfa9-d901c49ef3fd' },
-  { label: 'Tänd nere', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
 ];
 const TEMPS = [ ['Kallt', 0, '#CFE3FF'], ['Neutralt', 0.5, '#FFF4E0'], ['Varmt', 1, '#FFC67A'] ];
+// Färger för RGBWW-lamporna (hue 0–1)
+const COLORS = [ ['Röd',0,'#E5484D'], ['Orange',0.07,'#F2853A'], ['Gul',0.14,'#F5D90A'], ['Grön',0.33,'#46A758'], ['Turkos',0.5,'#2EC4C4'], ['Blå',0.63,'#3E7BFA'], ['Lila',0.76,'#8B5CF6'], ['Rosa',0.9,'#E93D82'] ];
 
 const HOLD_MS = 380, STEP = 0.06, TICK_MS = 220, REVERSE_WINDOW_MS = 4000, MIN_DIM = 0.01;
 
@@ -198,10 +205,11 @@ function render(){
       el.innerHTML = `<div class="row"><div class="bulb">${bulbSvg}</div><div class="pct">–</div></div>
         <div><div class="name"></div><div class="dir"></div></div>
         <div class="temps">${TEMPS.map(t=>`<div class="t" data-t="${t[1]}" aria-label="${t[0]}"><span style="background:${t[2]}"></span></div>`).join('')}</div>
+        ${z.colors ? `<div class="colors">${COLORS.map(c=>`<div class="c" data-h="${c[1]}" aria-label="${c[0]}" style="background:${c[2]}"></div>`).join('')}</div>` : ''}
         <div class="fill"></div>`;
       el.querySelector('.name').textContent = z.name;
       g.appendChild(el);
-      state[z.id] = { on:false, dim:0, el, lastHoldEnd:0, lastDir:'down', busy:false };
+      state[z.id] = { on:false, dim:0, temp:null, mode:null, hue:null, el, z, lastHoldEnd:0, lastDir:'down', busy:false };
       bindZone(z, el);
     }
   }
@@ -236,6 +244,9 @@ function paint(id){
   s.el.classList.toggle('on', s.on);
   s.el.querySelector('.pct').textContent = s.on ? Math.round(s.dim*100) + ' %' : 'Av';
   s.el.querySelector('.fill').style.width = s.on ? Math.round(s.dim*100) + '%' : '0';
+  const colorMode = s.mode === 'color';
+  s.el.querySelectorAll('.t').forEach(t => t.classList.toggle('sel', !colorMode && s.temp !== null && Math.abs(Number(t.dataset.t) - s.temp) <= 0.17));
+  s.el.querySelectorAll('.c').forEach(c => { const d = Math.abs(Number(c.dataset.h) - (s.hue ?? -9)); c.classList.toggle('sel', colorMode && Math.min(d, 1 - d) <= 0.05); });
 }
 
 function bindZone(z, el){
@@ -243,7 +254,7 @@ function bindZone(z, el){
   const s = () => state[z.id];
 
   el.addEventListener('pointerdown', e => {
-    if (e.target.closest('.t')) return;
+    if (e.target.closest('.t,.c')) return;
     el.setPointerCapture(e.pointerId);
     startX = e.clientX; startY = e.clientY; moved = false; holding = false;
     el.classList.add('pressed');
@@ -253,7 +264,7 @@ function bindZone(z, el){
     if (Math.abs(e.clientX-startX) > 12 || Math.abs(e.clientY-startY) > 12){ moved = true; clearTimeout(timer); if (!holding) el.classList.remove('pressed'); }
   });
   const end = e => {
-    if (e.target.closest && e.target.closest('.t')) return;
+    if (e.target.closest && e.target.closest('.t,.c')) return;
     clearTimeout(timer); el.classList.remove('pressed');
     if (holding){ stopHold(); return; }
     if (!moved && e.type === 'pointerup') toggle();
@@ -264,8 +275,21 @@ function bindZone(z, el){
 
   el.querySelectorAll('.t').forEach(t => t.addEventListener('click', async ev => {
     ev.stopPropagation();
-    try { await setCap(z.id, 'light_temperature', Number(t.dataset.t)); vibrate(15); }
-    catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
+    const st = s(); st.temp = Number(t.dataset.t); st.mode = 'temperature'; paint(z.id); vibrate(15);
+    try {
+      if (z.colors) await Promise.all(z.colors.map(id => setCap(id, 'light_temperature', st.temp).catch(()=>{})));
+      else await setCap(z.id, 'light_temperature', st.temp);
+    } catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
+  }));
+  el.querySelectorAll('.c').forEach(c => c.addEventListener('click', async ev => {
+    ev.stopPropagation();
+    const st = s(); st.hue = Number(c.dataset.h); st.mode = 'color'; paint(z.id); vibrate(15);
+    const res = await Promise.allSettled(z.colors.map(async id => {
+      await setCap(id, 'light_hue', st.hue);
+      await setCap(id, 'light_saturation', 1);
+    }));
+    const bad = res.filter(r => r.status === 'rejected').length;
+    if (bad) status(bad + ' av ' + z.colors.length + ' lampor ville inte byta färg', true); else status('');
   }));
 
   async function toggle(){
@@ -330,6 +354,15 @@ async function refresh(){
       st.on = !!(c.onoff && c.onoff.value);
       st.dim = (c.dim && typeof c.dim.value === 'number') ? c.dim.value : (st.on ? 1 : 0);
       st.el.querySelector('.temps').style.visibility = c.light_temperature ? '' : 'hidden';
+      st.temp = (c.light_temperature && typeof c.light_temperature.value === 'number') ? c.light_temperature.value : null;
+      st.mode = c.light_mode ? c.light_mode.value : null;
+      if (st.z.colors){
+        const m = await api('GET', `/manager/devices/device/${st.z.colors[0]}`);
+        const mc = m.capabilitiesObj || {};
+        st.mode = mc.light_mode ? mc.light_mode.value : st.mode;
+        st.hue = mc.light_hue ? mc.light_hue.value : null;
+        if (mc.light_temperature) st.temp = mc.light_temperature.value;
+      }
       paint(id);
       if (statusEl.textContent.startsWith('Ansluter')) status('');
     } catch(err){
