@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="sv">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#121417">
+<title>Lampor</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+:root{
+  --bg:#121417;--card:#1D2126;--card2:#262B31;--line:#2A3037;--txt:#F2EFE9;--mut:#A7ADB5;
+  --amber:#F2A33A;--amberbg:#2A2116;--amberline:#4A3718;--track:#2E343B;--danger:#E5484D;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);user-select:none;-webkit-user-select:none;overscroll-behavior:none}
+h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center}
+.status{font-size:13px;color:var(--mut);min-height:18px;margin:-6px 0 12px}
+.status.err{color:var(--danger)}
+.scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
+.scene{height:58px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.scene:active{background:var(--card2)}
+.scene.off{background:var(--amber);color:#1A1305;border:none}
+.floor{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.zone{position:relative;overflow:hidden;border-radius:20px;background:var(--card);border:1px solid var(--line);padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;touch-action:none;transition:transform .08s}
+.zone.wide{grid-column:span 2}
+.zone.on{background:var(--amberbg);border-color:var(--amberline)}
+.zone.pressed{transform:scale(.97)}
+.zone .fill{position:absolute;left:0;bottom:0;height:5px;background:var(--amber);width:0;transition:width .25s}
+.zone .row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.bulb{width:36px;height:36px;border-radius:11px;background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.zone.on .bulb{background:var(--amber);color:#1A1305}
+.pct{font-size:20px;font-weight:700;color:var(--mut)}
+.zone.on .pct{color:var(--txt)}
+.name{font-size:16px;font-weight:650;margin-top:10px;line-height:1.2}
+.dir{font-size:12px;color:var(--amber);height:15px}
+.temps{display:none;gap:6px;margin-top:10px}
+.zone.on .temps{display:flex}
+.t{flex:1;height:30px;border-radius:9px;border:1px solid var(--amberline);background:#1D1912;display:flex;align-items:center;justify-content:center}
+.t span{width:12px;height:12px;border-radius:6px}
+.help{margin-top:22px;font-size:12px;color:var(--mut);line-height:1.5;text-align:center}
+.setup{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
+.setup h2{margin:0 0 6px;font-size:20px}
+.setup p{color:var(--mut);font-size:14px;line-height:1.5;margin:0 0 14px}
+.setup label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
+.setup input{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:#14171A;color:var(--txt);padding:0 12px;font-size:15px;user-select:text;-webkit-user-select:text}
+.btn{width:100%;height:48px;border-radius:14px;border:none;background:var(--amber);color:#1A1305;font-weight:700;font-size:16px;margin-top:18px}
+.btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:10px}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<section id="setup" class="setup hidden">
+  <h2>Koppla till Homey</h2>
+  <p>Klistra in API-nyckeln du skapade i Homey (Inställningar → API-nycklar). Den sparas bara i den här telefonen.</p>
+  <label for="homeyId">Homey-ID</label>
+  <input id="homeyId" autocomplete="off" spellcheck="false" value="69adf39d04f654178861fde7">
+  <label for="apiKey">API-nyckel</label>
+  <input id="apiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Klistra in nyckeln här">
+  <button class="btn" id="saveBtn">Spara och anslut</button>
+  <button class="btn ghost hidden" id="cancelBtn">Avbryt</button>
+  <div class="status" id="setupStatus" style="margin-top:12px"></div>
+</section>
+
+<main id="app" class="hidden">
+  <div class="top">
+    <h1>Lampor</h1>
+    <button class="iconbtn" id="settingsBtn" aria-label="Inställningar">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </div>
+  <div class="status" id="status"></div>
+  <div class="scenes" id="scenes"></div>
+  <div id="floors"></div>
+  <div class="help">Tryck = tänd/släck · Håll in = dimra upp · Släpp och håll igen = dimra ner</div>
+</main>
+
+<script>
+// ---- Konfiguration: zoner (grupp-enheter i Homey) ----
+const FLOORS = [
+  { name: 'Bottenvåningen', zones: [
+    { id: '7c602ef4-7ea0-4d0e-bde2-7e18dabb4389', name: 'Entré' },
+    { id: 'a0686c67-4a06-4723-82cc-dbb49a73f01b', name: 'Kök' },
+    { id: '2dd5c7b9-61e1-4349-bb83-7444ade7f5be', name: 'Köksbänk' },
+    { id: 'a43e3e8b-181a-4316-ab9d-08a1c4b7a8cb', name: 'Köksön' },
+    { id: '82351d3e-ff80-4ac3-bf93-051f7105161f', name: 'Vardagsrum', wide: true },
+    { id: '9d9dd3c5-d4b1-43d0-a636-49b1a50a0c5c', name: 'Ginhörnan' },
+    { id: 'e8b967eb-ced9-4ab0-bf51-b4fd94446935', name: 'Middagsbord' },
+    { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger' },
+    { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten' },
+    { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster' },
+    { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning' },
+    { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv' },
+  ]},
+  { name: 'Övervåning', zones: [
+    { id: 'cc806e65-03fb-4905-a2f7-181d8574ea51', name: 'Sovrum' },
+    { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv' },
+  ]},
+  { name: 'Ute', zones: [
+    { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'Fasad & uppfart', wide: true },
+  ]},
+];
+// Scener = flöden i Homey ("Scen – …") som startas med knapptryck
+const SCENES = [
+  { label: 'Släck allt', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
+  { label: 'Kväll', flow: '5c685373-58ce-4532-94ed-11891f5737e1' },
+  { label: 'TV', flow: '89d79a92-b486-4a46-bfa9-d901c49ef3fd' },
+  { label: 'Tänd nere', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
+];
+const TEMPS = [ ['Kallt', 0, '#CFE3FF'], ['Neutralt', 0.5, '#FFF4E0'], ['Varmt', 1, '#FFC67A'] ];
+
+const HOLD_MS = 380, STEP = 0.06, TICK_MS = 220, REVERSE_WINDOW_MS = 4000, MIN_DIM = 0.01;
+
+// ---- Lagring (bara i telefonen) ----
+const store = {
+  get(k){ try { return localStorage.getItem(k) } catch(e){ return null } },
+  set(k,v){ try { localStorage.setItem(k,v) } catch(e){} },
+};
+let cfg = { homeyId: store.get('homeyId') || '69adf39d04f654178861fde7', key: store.get('apiKey') || '' };
+const base = () => `https://${cfg.homeyId}.connect.athom.com/api`;
+
+async function api(method, path, body){
+  const res = await fetch(base() + path, {
+    method,
+    headers: { 'Authorization': 'Bearer ' + cfg.key, ...(body ? {'Content-Type':'application/json'} : {}) },
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (!res.ok) { const t = await res.text().catch(()=> ''); throw new Error(res.status + ' ' + t.slice(0,120)); }
+  const ct = res.headers.get('content-type') || '';
+  return ct.includes('json') ? res.json() : res.text();
+}
+const setCap = (id, cap, value) => api('PUT', `/manager/devices/device/${id}/capability/${cap}`, { value });
+
+// ---- UI ----
+const $ = s => document.querySelector(s);
+const statusEl = $('#status');
+function status(msg, err){ statusEl.textContent = msg || ''; statusEl.classList.toggle('err', !!err); }
+
+const state = {}; // id -> {on, dim, el, lastHoldEnd, lastDir}
+const bulbSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>';
+
+function render(){
+  const floors = $('#floors'); floors.innerHTML = '';
+  for (const f of FLOORS){
+    const h = document.createElement('div'); h.className = 'floor'; h.textContent = f.name; floors.appendChild(h);
+    const g = document.createElement('div'); g.className = 'grid'; floors.appendChild(g);
+    for (const z of f.zones){
+      const el = document.createElement('div');
+      el.className = 'zone' + (z.wide ? ' wide' : '');
+      el.innerHTML = `<div class="row"><div class="bulb">${bulbSvg}</div><div class="pct">–</div></div>
+        <div><div class="name"></div><div class="dir"></div></div>
+        <div class="temps">${TEMPS.map(t=>`<div class="t" data-t="${t[1]}" aria-label="${t[0]}"><span style="background:${t[2]}"></span></div>`).join('')}</div>
+        <div class="fill"></div>`;
+      el.querySelector('.name').textContent = z.name;
+      g.appendChild(el);
+      state[z.id] = { on:false, dim:0, el, lastHoldEnd:0, lastDir:'down', busy:false };
+      bindZone(z, el);
+    }
+  }
+  const sc = $('#scenes'); sc.innerHTML = '';
+  for (const s of SCENES){
+    const b = document.createElement('button');
+    b.className = 'scene' + (s.primary ? ' off' : '');
+    b.textContent = s.label;
+    b.onclick = () => runScene(s, b);
+    sc.appendChild(b);
+  }
+}
+
+function paint(id){
+  const s = state[id]; if (!s) return;
+  s.el.classList.toggle('on', s.on);
+  s.el.querySelector('.pct').textContent = s.on ? Math.round(s.dim*100) + ' %' : 'Av';
+  s.el.querySelector('.fill').style.width = s.on ? Math.round(s.dim*100) + '%' : '0';
+}
+
+function bindZone(z, el){
+  let timer = null, ramp = null, holding = false, startX = 0, startY = 0, moved = false;
+  const s = () => state[z.id];
+
+  el.addEventListener('pointerdown', e => {
+    if (e.target.closest('.t')) return;
+    el.setPointerCapture(e.pointerId);
+    startX = e.clientX; startY = e.clientY; moved = false; holding = false;
+    el.classList.add('pressed');
+    timer = setTimeout(() => startHold(), HOLD_MS);
+  });
+  el.addEventListener('pointermove', e => {
+    if (Math.abs(e.clientX-startX) > 12 || Math.abs(e.clientY-startY) > 12){ moved = true; clearTimeout(timer); if (!holding) el.classList.remove('pressed'); }
+  });
+  const end = e => {
+    if (e.target.closest && e.target.closest('.t')) return;
+    clearTimeout(timer); el.classList.remove('pressed');
+    if (holding){ stopHold(); return; }
+    if (!moved && e.type === 'pointerup') toggle();
+  };
+  el.addEventListener('pointerup', end);
+  el.addEventListener('pointercancel', end);
+  el.addEventListener('contextmenu', e => e.preventDefault());
+
+  el.querySelectorAll('.t').forEach(t => t.addEventListener('click', async ev => {
+    ev.stopPropagation();
+    try { await setCap(z.id, 'light_temperature', Number(t.dataset.t)); vibrate(15); }
+    catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
+  }));
+
+  async function toggle(){
+    const st = s(); const next = !st.on;
+    st.on = next; if (next && st.dim < MIN_DIM) st.dim = 0.5; paint(z.id); vibrate(12);
+    try { await setCap(z.id, 'onoff', next); status(''); }
+    catch(err){ st.on = !next; paint(z.id); status('Kunde inte styra ' + z.name + ': ' + err.message, true); }
+  }
+
+  function startHold(){
+    holding = true; const st = s();
+    const recent = Date.now() - st.lastHoldEnd < REVERSE_WINDOW_MS;
+    let dir = recent ? (st.lastDir === 'up' ? 'down' : 'up') : 'up';
+    if (!st.on){ dir = 'up'; st.dim = 0; st.on = true; }
+    st.lastDir = dir;
+    el.querySelector('.dir').textContent = dir === 'up' ? '▲ ljusare' : '▼ mörkare';
+    vibrate(25);
+    const tick = async () => {
+      if (!holding) return;
+      let v = st.dim + (dir === 'up' ? STEP : -STEP);
+      v = Math.max(MIN_DIM, Math.min(1, v));
+      st.dim = v; paint(z.id);
+      if (!st.busy){
+        st.busy = true;
+        try { await setCap(z.id, 'dim', Math.round(v*100)/100); }
+        catch(err){ status('Kunde inte dimra ' + z.name + ': ' + err.message, true); }
+        st.busy = false;
+      }
+      if (holding) ramp = setTimeout(tick, TICK_MS);
+    };
+    tick();
+  }
+  async function stopHold(){
+    holding = false; clearTimeout(ramp);
+    const st = s(); st.lastHoldEnd = Date.now();
+    el.querySelector('.dir').textContent = '';
+    // skicka slutvärdet så att lamporna landar exakt där reglaget stannade
+    try { await setCap(z.id, 'dim', Math.round(st.dim*100)/100); } catch(e){}
+  }
+}
+
+function vibrate(ms){ try { navigator.vibrate && navigator.vibrate(ms) } catch(e){} }
+
+async function runScene(s, btn){
+  btn.disabled = true; vibrate(20);
+  try {
+    await api('POST', `/manager/flow/flow/${s.flow}/trigger`);
+    status(s.label + ' ✓'); setTimeout(refresh, 1500);
+  } catch(err){ status('Scen ' + s.label + ': ' + err.message, true); }
+  finally { btn.disabled = false; }
+}
+
+// ---- Läs av status ----
+async function refresh(){
+  if (document.hidden || !cfg.key) return;
+  const ids = Object.keys(state).filter(id => !id.startsWith('__'));
+  await Promise.all(ids.map(async id => {
+    const st = state[id]; if (st.busy) return;
+    try {
+      const d = await api('GET', `/manager/devices/device/${id}`);
+      const c = d.capabilitiesObj || {};
+      st.on = !!(c.onoff && c.onoff.value);
+      st.dim = (c.dim && typeof c.dim.value === 'number') ? c.dim.value : (st.on ? 1 : 0);
+      st.el.querySelector('.temps').style.visibility = c.light_temperature ? '' : 'hidden';
+      paint(id);
+      if (statusEl.textContent.startsWith('Ansluter')) status('');
+    } catch(err){
+      status('Ingen kontakt med Homey: ' + err.message, true);
+    }
+  }));
+}
+
+// ---- Uppstart ----
+function showSetup(first){
+  $('#setup').classList.remove('hidden'); $('#app').classList.add('hidden');
+  $('#homeyId').value = cfg.homeyId; $('#apiKey').value = '';
+  $('#cancelBtn').classList.toggle('hidden', first);
+}
+function showApp(){
+  $('#setup').classList.add('hidden'); $('#app').classList.remove('hidden');
+  status('Ansluter…'); refresh();
+}
+$('#saveBtn').onclick = async () => {
+  const id = $('#homeyId').value.trim(), key = $('#apiKey').value.trim();
+  if (!id || !key){ $('#setupStatus').textContent = 'Fyll i båda fälten.'; return; }
+  cfg = { homeyId: id, key };
+  $('#setupStatus').textContent = 'Testar anslutningen…';
+  try {
+    await api('GET', '/manager/devices/device/' + FLOORS[0].zones[0].id);
+    store.set('homeyId', id); store.set('apiKey', key);
+    $('#setupStatus').textContent = ''; showApp();
+  } catch(err){ $('#setupStatus').textContent = 'Det gick inte att ansluta: ' + err.message; }
+};
+$('#cancelBtn').onclick = () => { cfg.key = store.get('apiKey') || ''; showApp(); };
+$('#settingsBtn').onclick = () => showSetup(false);
+
+render();
+if (cfg.key) showApp(); else showSetup(true);
+setInterval(refresh, 5000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+</script>
+</body>
+</html>
