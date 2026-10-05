@@ -18,12 +18,17 @@ body{padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset
 h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 .top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
 .iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center}
-.status{font-size:13px;color:var(--mut);min-height:18px;margin:-6px 0 12px}
+.status{font-size:13px;color:var(--mut);min-height:0;margin:0 0 10px}
+.status:empty{margin:0}
 .status.err{color:var(--danger)}
+.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:12px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:5}
+.tab{height:42px;border:none;border-radius:12px;background:transparent;color:var(--mut);font-size:12px;font-weight:650;padding:0 2px;white-space:nowrap;letter-spacing:-.2px;overflow:hidden;text-overflow:clip}
+.tab.active{background:var(--amber);color:#1A1305}
+.empty{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.5;border:1px dashed var(--line);border-radius:20px}
 .scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
 .scene{height:58px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
 .scene:active{background:var(--card2)}
-.scene.off{background:var(--amber);color:#1A1305;border:none}
+.scene.off{background:#3A1F1F;color:#FFD9D9;border:1px solid #5A2C2C}
 .floor{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
 .zone{position:relative;overflow:hidden;border-radius:20px;background:var(--card);border:1px solid var(--line);padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;touch-action:none;transition:transform .08s}
@@ -74,6 +79,7 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
   </div>
+  <nav class="tabs" id="tabs"></nav>
   <div class="status" id="status"></div>
   <div class="scenes" id="scenes"></div>
   <div id="floors"></div>
@@ -82,29 +88,47 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 
 <script>
 // ---- Konfiguration: zoner (grupp-enheter i Homey) ----
-const FLOORS = [
-  { name: 'Bottenvåningen', zones: [
-    { id: '7c602ef4-7ea0-4d0e-bde2-7e18dabb4389', name: 'Entré' },
-    { id: 'a0686c67-4a06-4723-82cc-dbb49a73f01b', name: 'Kök' },
-    { id: '2dd5c7b9-61e1-4349-bb83-7444ade7f5be', name: 'Köksbänk' },
-    { id: 'a43e3e8b-181a-4316-ab9d-08a1c4b7a8cb', name: 'Köksön' },
-    { id: '82351d3e-ff80-4ac3-bf93-051f7105161f', name: 'Vardagsrum', wide: true },
-    { id: '9d9dd3c5-d4b1-43d0-a636-49b1a50a0c5c', name: 'Ginhörnan' },
-    { id: 'e8b967eb-ced9-4ab0-bf51-b4fd94446935', name: 'Middagsbord' },
-    { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger' },
-    { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten' },
-    { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster' },
-    { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning' },
-    { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv' },
+const PAGES = [
+  { key: 'botten', name: 'Bottenvåning', sections: [
+    { name: 'Hela våningen', zones: [
+      { id: '82351d3e-ff80-4ac3-bf93-051f7105161f', name: 'Vardagsrum', wide: true },
+      { id: 'a0686c67-4a06-4723-82cc-dbb49a73f01b', name: 'Kök' },
+      { id: '7c602ef4-7ea0-4d0e-bde2-7e18dabb4389', name: 'Entré' },
+    ]},
+    { name: 'Kök', zones: [
+      { id: '2dd5c7b9-61e1-4349-bb83-7444ade7f5be', name: 'Köksbänk' },
+      { id: 'a43e3e8b-181a-4316-ab9d-08a1c4b7a8cb', name: 'Köksön' },
+    ]},
+    { name: 'Vardagsrum', zones: [
+      { id: '9d9dd3c5-d4b1-43d0-a636-49b1a50a0c5c', name: 'Ginhörnan' },
+      { id: 'e8b967eb-ced9-4ab0-bf51-b4fd94446935', name: 'Middagsbord' },
+      { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger' },
+      { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten' },
+      { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster' },
+      { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning' },
+    ]},
+    { name: 'Övrigt', zones: [
+      { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv' },
+    ]},
   ]},
-  { name: 'Övervåning', zones: [
-    { id: 'cc806e65-03fb-4905-a2f7-181d8574ea51', name: 'Sovrum' },
-    { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv' },
+  { key: 'over', name: 'Övervåning', sections: [
+    { name: 'Rum', zones: [
+      { id: 'cc806e65-03fb-4905-a2f7-181d8574ea51', name: 'Sovrum' },
+      { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv' },
+    ]},
   ]},
-  { name: 'Ute', zones: [
-    { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'Fasad & uppfart', wide: true },
+  { key: 'garage', name: 'Garage', sections: [], empty: 'Det finns inga lampor i garaget i Homey ännu. När du lägger till lampor där kan jag lägga in dem här.' },
+  { key: 'ute', name: 'Utomhus', sections: [
+    { name: 'Fasad & uppfart', zones: [
+      { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'All utebelysning', wide: true },
+      { id: '1b14ef1d-740f-4ab7-8149-4cdb24da448d', name: 'Fasad framsida' },
+      { id: 'f66feb44-7690-4c6a-87e9-5f352c25349a', name: 'Entréstolpe front' },
+      { id: '9213fb7d-ef86-4bed-88c4-f059845cc1e8', name: 'Entréstolpe uppfart' },
+    ]},
   ]},
 ];
+let currentPage = (() => { try { return localStorage.getItem('page') || 'botten' } catch(e){ return 'botten' } })();
+if (!PAGES.some(p => p.key === currentPage)) currentPage = 'botten';
 // Scener = flöden i Homey ("Scen – …") som startas med knapptryck
 const SCENES = [
   { label: 'Släck allt', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
@@ -144,9 +168,28 @@ function status(msg, err){ statusEl.textContent = msg || ''; statusEl.classList.
 const state = {}; // id -> {on, dim, el, lastHoldEnd, lastDir}
 const bulbSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>';
 
+function renderTabs(){
+  const nav = $('#tabs'); nav.innerHTML = '';
+  for (const p of PAGES){
+    const b = document.createElement('button');
+    b.className = 'tab' + (p.key === currentPage ? ' active' : '');
+    b.textContent = p.name;
+    b.onclick = () => showPage(p.key);
+    nav.appendChild(b);
+  }
+}
+function showPage(key){
+  currentPage = key; store.set('page', key);
+  renderTabs(); render(); refresh(); window.scrollTo(0,0);
+}
 function render(){
   const floors = $('#floors'); floors.innerHTML = '';
-  for (const f of FLOORS){
+  for (const k of Object.keys(state)) delete state[k];
+  const page = PAGES.find(p => p.key === currentPage);
+  if (page.empty && !page.sections.length){
+    const e = document.createElement('div'); e.className = 'empty'; e.textContent = page.empty; floors.appendChild(e);
+  }
+  for (const f of page.sections){
     const h = document.createElement('div'); h.className = 'floor'; h.textContent = f.name; floors.appendChild(h);
     const g = document.createElement('div'); g.className = 'grid'; floors.appendChild(g);
     for (const z of f.zones){
@@ -162,6 +205,8 @@ function render(){
       bindZone(z, el);
     }
   }
+}
+function renderScenes(){
   const sc = $('#scenes'); sc.innerHTML = '';
   for (const s of SCENES){
     const b = document.createElement('button');
@@ -171,6 +216,20 @@ function render(){
     sc.appendChild(b);
   }
 }
+
+// svep åt vänster/höger för att byta sida
+(() => {
+  let sx = 0, sy = 0, t0 = 0;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; t0 = Date.now(); }, { passive: true });
+  document.addEventListener('touchend', e => {
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    if (Date.now() - t0 > 600 || Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
+    if (document.querySelector('.zone.pressed')) return;
+    const i = PAGES.findIndex(p => p.key === currentPage);
+    const n = dx < 0 ? Math.min(PAGES.length - 1, i + 1) : Math.max(0, i - 1);
+    if (n !== i) showPage(PAGES[n].key);
+  }, { passive: true });
+})();
 
 function paint(id){
   const s = state[id]; if (!s) return;
@@ -295,7 +354,7 @@ $('#saveBtn').onclick = async () => {
   cfg = { homeyId: id, key };
   $('#setupStatus').textContent = 'Testar anslutningen…';
   try {
-    await api('GET', '/manager/devices/device/' + FLOORS[0].zones[0].id);
+    await api('GET', '/manager/devices/device/' + PAGES[0].sections[0].zones[0].id);
     store.set('homeyId', id); store.set('apiKey', key);
     $('#setupStatus').textContent = ''; showApp();
   } catch(err){ $('#setupStatus').textContent = 'Det gick inte att ansluta: ' + err.message; }
@@ -303,7 +362,7 @@ $('#saveBtn').onclick = async () => {
 $('#cancelBtn').onclick = () => { cfg.key = store.get('apiKey') || ''; showApp(); };
 $('#settingsBtn').onclick = () => showSetup(false);
 
-render();
+renderTabs(); renderScenes(); render();
 if (cfg.key) showApp(); else showSetup(true);
 setInterval(refresh, 5000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
