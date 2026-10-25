@@ -21,8 +21,9 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 .status{font-size:13px;color:var(--mut);min-height:0;margin:0 0 10px}
 .status:empty{margin:0}
 .status.err{color:var(--danger)}
-.tabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:12px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:5}
-.tab{height:42px;border:none;border-radius:12px;background:transparent;color:var(--mut);font-size:12px;font-weight:650;padding:0 2px;white-space:nowrap;letter-spacing:-.2px;overflow:hidden;text-overflow:clip}
+.tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:12px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:5}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex:1 0 auto;height:42px;border:none;border-radius:12px;background:transparent;color:var(--mut);font-size:12px;font-weight:650;padding:0 10px;white-space:nowrap;letter-spacing:-.2px;overflow:hidden;text-overflow:clip}
 .tab.active{background:var(--amber);color:#1A1305}
 .empty{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.5;border:1px dashed var(--line);border-radius:20px}
 .scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
@@ -35,6 +36,12 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 .zone.wide{grid-column:span 2}
 .zone.on{background:var(--amberbg);border-color:var(--amberline)}
 .zone.pressed{transform:scale(.97)}
+.zone.sw{min-height:96px}
+.zone.sw.on{background:#16261C;border-color:#24543A}
+.zone.sw.on .bulb{background:#46A758;color:#0B1A10}
+.zone.sw .pct{font-size:17px}
+.zone.offline{opacity:.45}
+.watt{font-size:12px;color:var(--mut);height:15px}
 .zone .fill{position:absolute;left:0;bottom:0;height:5px;background:var(--amber);width:0;transition:width .25s}
 .zone .row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .bulb{width:36px;height:36px;border-radius:11px;background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;flex-shrink:0}
@@ -131,7 +138,42 @@ const PAGES = [
       { id: '9213fb7d-ef86-4bed-88c4-f059845cc1e8', name: 'Entréstolpe uppfart' },
     ]},
   ]},
+  // Strömbrytare (Smart Life/Tuya) – bara på/av. guard = fråga innan avstängning
+  { key: 'el', name: 'Strömbrytare', sw: true, sections: [
+    { name: 'Kök', zones: [
+      { id: 'c0aea280-53a0-48be-821e-4dd2e7b12b10', name: 'Kaffebryggare' },
+    ]},
+    { name: 'Badrum', zones: [
+      { id: '2fd43deb-4b2a-4b7f-ac98-e082b2c0e3e8', name: 'Led badrum' },
+    ]},
+    { name: 'Övervåning', zones: [
+      { id: '167a63c5-a667-447f-abfc-a80337246848', name: 'Jordglob' },
+      { id: '6418f2ef-0fd7-4299-958a-264d6ad23291', name: 'Taxlampan' },
+    ]},
+    { name: 'Fasad & uppfart', zones: [
+      { id: 'd489f2d7-bec6-4d69-88b6-4380e13f220d', name: 'Led bambu uppfart' },
+    ]},
+    { name: 'Dammbelysning', zones: [
+      { id: '930144d4-1c83-4f52-80d7-a2a0fd3f7fa4', name: 'Belysning vattenfall' },
+      { id: '7f853126-bbee-4c35-b44b-41b2521c93c2', name: 'Dammbelysning skymning' },
+    ]},
+    { name: 'Trädgård – dammen', zones: [
+      { id: 'c4aa13b5-96d7-4975-bd8d-c0c2c00ccaa2', name: 'Huvudström dammen', wide: true, guard: true },
+      { id: '7804b297-c82d-4c4f-8799-65ee23eb4c7c', name: 'Extrapump cirkulation', guard: true },
+      { id: '3a032342-5206-40e9-adf1-b39c52c19a85', name: 'Luftpump center', guard: true },
+      { id: '7c20c205-b141-4db9-b5c1-bd01c8f34684', name: 'Ny luftpump center', guard: true },
+      { id: '4760fc57-34a8-407a-b94c-b8e93cf49791', name: 'Pumpsystem (fd luftpump extra)', guard: true },
+      { id: '4943a861-b08d-4f63-95dc-baced81a1670', name: 'Vattenfall luftpump', guard: true },
+      { id: '32bb38f6-4b28-4efa-ae5b-09d8536d6197', name: 'Vattenfallpump', guard: true },
+      { id: 'ffab1acf-7cea-4ac4-9081-5a0d22de00b4', name: 'Pump grundvatten', guard: true },
+    ]},
+    { name: 'Övriga strömbrytare', zones: [
+      { id: '665a1e58-0616-4158-acf1-56fffc9ef541', name: 'WIFI', guard: true },
+      { id: '080be9ed-efa5-48a0-90f9-88df8f948c04', name: 'DeWalt batteriladdare' },
+    ]},
+  ]},
 ];
+const plugSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>';
 let currentPage = (() => { try { return localStorage.getItem('page') || 'botten' } catch(e){ return 'botten' } })();
 if (!PAGES.some(p => p.key === currentPage)) currentPage = 'botten';
 // Scener = flöden i Homey ("Scen – …") som startas med knapptryck
@@ -184,15 +226,19 @@ function renderTabs(){
     b.onclick = () => showPage(p.key);
     nav.appendChild(b);
   }
+  requestAnimationFrame(() => { const a = nav.querySelector('.tab.active'); if (a) nav.scrollLeft = Math.max(0, a.offsetLeft + a.offsetWidth - nav.clientWidth + 8) > nav.scrollLeft || a.offsetLeft < nav.scrollLeft ? (a.offsetLeft < nav.scrollLeft ? a.offsetLeft - 4 : a.offsetLeft + a.offsetWidth - nav.clientWidth + 8) : nav.scrollLeft; });
 }
 function showPage(key){
   currentPage = key; store.set('page', key);
   renderTabs(); render(); refresh(); window.scrollTo(0,0);
 }
+const HELP_LAMP = 'Tryck = tänd/släck · Håll in = dimra upp · Släpp och håll igen = dimra ner';
+const HELP_SW = 'Tryck = slå på/av. Pumpar och WIFI frågar innan de stängs av.';
 function render(){
   const floors = $('#floors'); floors.innerHTML = '';
   for (const k of Object.keys(state)) delete state[k];
   const page = PAGES.find(p => p.key === currentPage);
+  $('.help').textContent = page.sw ? HELP_SW : HELP_LAMP;
   if (page.empty && !page.sections.length){
     const e = document.createElement('div'); e.className = 'empty'; e.textContent = page.empty; floors.appendChild(e);
   }
@@ -201,15 +247,17 @@ function render(){
     const g = document.createElement('div'); g.className = 'grid'; floors.appendChild(g);
     for (const z of f.zones){
       const el = document.createElement('div');
-      el.className = 'zone' + (z.wide ? ' wide' : '');
-      el.innerHTML = `<div class="row"><div class="bulb">${bulbSvg}</div><div class="pct">–</div></div>
+      if (page.sw) z.sw = true;
+      el.className = 'zone' + (z.wide ? ' wide' : '') + (z.sw ? ' sw' : '');
+      el.innerHTML = z.sw ? `<div class="row"><div class="bulb">${plugSvg}</div><div class="pct">–</div></div>
+        <div><div class="name"></div><div class="watt"></div></div><div class="fill"></div>` : `<div class="row"><div class="bulb">${bulbSvg}</div><div class="pct">–</div></div>
         <div><div class="name"></div><div class="dir"></div></div>
         <div class="temps">${TEMPS.map(t=>`<div class="t" data-t="${t[1]}" aria-label="${t[0]}"><span style="background:${t[2]}"></span></div>`).join('')}</div>
         ${z.colors ? `<div class="colors">${COLORS.map(c=>`<div class="c" data-h="${c[1]}" aria-label="${c[0]}" style="background:${c[2]}"></div>`).join('')}</div>` : ''}
         <div class="fill"></div>`;
       el.querySelector('.name').textContent = z.name;
       g.appendChild(el);
-      state[z.id] = { on:false, dim:0, temp:null, mode:null, hue:null, el, z, lastHoldEnd:0, lastDir:'down', busy:false };
+      state[z.id] = { on:false, dim:0, temp:null, mode:null, hue:null, power:null, avail:true, el, z, lastHoldEnd:0, lastDir:'down', busy:false };
       bindZone(z, el);
     }
   }
@@ -242,6 +290,12 @@ function renderScenes(){
 function paint(id){
   const s = state[id]; if (!s) return;
   s.el.classList.toggle('on', s.on);
+  if (s.z.sw){
+    s.el.classList.toggle('offline', !s.avail);
+    s.el.querySelector('.pct').textContent = !s.avail ? 'Offline' : (s.on ? 'På' : 'Av');
+    s.el.querySelector('.watt').textContent = (typeof s.power === 'number') ? Math.round(s.power) + ' W' : '';
+    return;
+  }
   s.el.querySelector('.pct').textContent = s.on ? Math.round(s.dim*100) + ' %' : 'Av';
   s.el.querySelector('.fill').style.width = s.on ? Math.round(s.dim*100) + '%' : '0';
   const colorMode = s.mode === 'color';
@@ -258,7 +312,7 @@ function bindZone(z, el){
     el.setPointerCapture(e.pointerId);
     startX = e.clientX; startY = e.clientY; moved = false; holding = false;
     el.classList.add('pressed');
-    timer = setTimeout(() => startHold(), HOLD_MS);
+    if (!z.sw) timer = setTimeout(() => startHold(), HOLD_MS);
   });
   el.addEventListener('pointermove', e => {
     if (Math.abs(e.clientX-startX) > 12 || Math.abs(e.clientY-startY) > 12){ moved = true; clearTimeout(timer); if (!holding) el.classList.remove('pressed'); }
@@ -294,6 +348,7 @@ function bindZone(z, el){
 
   async function toggle(){
     const st = s(); const next = !st.on;
+    if (z.sw && !next && z.guard && !confirm('Stänga av ' + z.name + '?')) return;
     st.on = next; if (next && st.dim < MIN_DIM) st.dim = 0.5; paint(z.id); vibrate(12);
     try { await setCap(z.id, 'onoff', next); status(''); }
     catch(err){ st.on = !next; paint(z.id); status('Kunde inte styra ' + z.name + ': ' + err.message, true); }
@@ -353,6 +408,11 @@ async function refresh(){
       const c = d.capabilitiesObj || {};
       st.on = !!(c.onoff && c.onoff.value);
       st.dim = (c.dim && typeof c.dim.value === 'number') ? c.dim.value : (st.on ? 1 : 0);
+      if (st.z.sw){
+        st.avail = d.available !== false;
+        st.power = (c.measure_power && typeof c.measure_power.value === 'number') ? c.measure_power.value : null;
+        paint(id); if (statusEl.textContent.startsWith('Ansluter')) status(''); return;
+      }
       st.el.querySelector('.temps').style.visibility = c.light_temperature ? '' : 'hidden';
       st.temp = (c.light_temperature && typeof c.light_temperature.value === 'number') ? c.light_temperature.value : null;
       st.mode = c.light_mode ? c.light_mode.value : null;
