@@ -3,71 +3,143 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
-<meta name="theme-color" content="#121417">
+<meta name="theme-color" content="#120D09">
 <title>Lampor</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#121417;--card:#1D2126;--card2:#262B31;--line:#2A3037;--txt:#F2EFE9;--mut:#A7ADB5;
-  --amber:#F2A33A;--amberbg:#2A2116;--amberline:#4A3718;--track:#2E343B;--danger:#E5484D;
+  --bg:#110C08; --card:rgba(255,214,170,.035); --card2:rgba(255,214,170,.07); --edge:rgba(255,190,130,.13); --edge2:rgba(255,190,130,.28);
+  --txt:#F4ECE2; --mut:#A08F7E; --dim:#6A5D51;
+  --amber:#FFB56B; --copper:#E07A2E; --green:#8FD8A0; --danger:#FF7A6B;
+  --r:24px; --glow:.5;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--txt);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-body{padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 24px);user-select:none;-webkit-user-select:none;overscroll-behavior:none}
-h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
-.iconbtn{width:40px;height:40px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--mut);display:flex;align-items:center;justify-content:center}
-.status{font-size:13px;color:var(--mut);min-height:0;margin:0 0 10px}
-.status:empty{margin:0}
-.status.err{color:var(--danger)}
-.tabs{display:flex;overflow-x:auto;scrollbar-width:none;gap:4px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:4px;margin-bottom:12px;position:sticky;top:calc(env(safe-area-inset-top) + 6px);z-index:5}
+html,body{margin:0;background:var(--bg);color:var(--txt);font-family:Outfit,system-ui,-apple-system,Roboto,sans-serif;font-weight:300}
+body{min-height:100vh;padding:calc(env(safe-area-inset-top) + 14px) 18px calc(env(safe-area-inset-bottom) + 28px);user-select:none;-webkit-user-select:none;overscroll-behavior:none;position:relative}
+body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;transition:opacity .8s;
+  background:
+    radial-gradient(90% 55% at 50% -8%, rgba(224,122,46,calc(.18 + .40*var(--glow))), transparent 70%),
+    radial-gradient(70% 40% at 100% 100%, rgba(224,122,46,.10), transparent 70%),
+    var(--bg)}
+button{font-family:inherit;font-weight:inherit}
+.hidden{display:none!important}
+
+/* topprad */
+.top{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px}
+.top h1{margin:0;text-align:center;font-size:18px;font-weight:400;letter-spacing:.2px}
+.top .hello{text-align:center;font-size:11px;color:var(--mut);margin-top:2px;letter-spacing:.3px}
+.ring-btn{width:44px;height:44px;border-radius:50%;border:1px dashed rgba(255,190,130,.32);background:rgba(0,0,0,.25);color:var(--txt);display:flex;align-items:center;justify-content:center}
+
+/* hero-mätare */
+.hero{display:flex;justify-content:center;gap:34px;margin:22px 0 18px}
+.gauge{width:112px;text-align:center;position:relative}
+.gauge svg{width:112px;height:112px;display:block}
+.gauge .in{position:absolute;inset:0 0 auto 0;height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px}
+.gauge .in svg{width:18px;height:18px;color:var(--amber)}
+.gauge .val{font-size:22px;font-weight:300;letter-spacing:-.3px;line-height:1}
+.gauge .val small{font-size:11px;color:var(--mut);margin-left:2px}
+.gauge .lbl{font-size:10.5px;color:var(--mut);margin-top:4px;letter-spacing:.2px}
+
+/* flikar */
+.tabs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 18px}
 .tabs::-webkit-scrollbar{display:none}
-.tab{flex:1 0 auto;height:42px;border:none;border-radius:12px;background:transparent;color:var(--mut);font-size:12px;font-weight:650;padding:0 10px;white-space:nowrap;letter-spacing:-.2px;overflow:hidden;text-overflow:clip}
-.tab.active{background:var(--amber);color:#1A1305}
-.empty{padding:28px 16px;text-align:center;color:var(--mut);font-size:14px;line-height:1.5;border:1px dashed var(--line);border-radius:20px}
-.scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:18px}
-.scene{height:58px;border-radius:16px;border:1px solid var(--line);background:var(--card);color:var(--txt);font-size:13px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
-.scene:active{background:var(--card2)}
-.scene.off{background:#3A1F1F;color:#FFD9D9;border:1px solid #5A2C2C}
-.floor{margin:18px 0 8px;font-size:12px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.tab{height:38px;padding:0 6px;border-radius:999px;border:1px solid var(--edge);background:rgba(0,0,0,.25);color:var(--mut);font-size:13px;font-weight:400;white-space:nowrap}
+.tab.active{color:var(--amber);border-color:rgba(255,181,107,.55);background:rgba(255,181,107,.10);box-shadow:0 0 18px rgba(224,122,46,.25)}
+
+.status{font-size:13px;color:var(--mut);margin:0 0 12px;text-align:center}
+.status:empty{display:none}
+.status.err{color:var(--danger)}
+
+/* scener */
+.scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}
+.scene{border:none;background:none;color:var(--mut);padding:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11.5px;font-weight:400;letter-spacing:.2px}
+.scene .ic{width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--edge);display:flex;align-items:center;justify-content:center;color:var(--amber);transition:transform .1s, background .25s, box-shadow .25s}
+.scene:active .ic{transform:scale(.92)}
+.scene.off .ic{color:var(--danger)}
+.scene.done .ic{background:rgba(255,181,107,.18);box-shadow:0 0 24px rgba(224,122,46,.5)}
+
+/* sektioner */
+.floor{display:flex;align-items:baseline;justify-content:space-between;margin:26px 4px 12px}
+.floor h2{margin:0;font-size:15px;font-weight:400;letter-spacing:.2px}
+.floor span{font-size:11px;color:var(--dim)}
 .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-.zone{position:relative;overflow:hidden;border-radius:20px;background:var(--card);border:1px solid var(--line);padding:14px;min-height:112px;display:flex;flex-direction:column;justify-content:space-between;touch-action:none;transition:transform .08s}
+#floors{margin-right:30px}
+#floors::after{content:"";position:fixed;top:0;bottom:0;right:7px;width:2px;border-radius:1px;background:linear-gradient(transparent,rgba(255,190,130,.12) 30%,rgba(255,190,130,.12) 70%,transparent);pointer-events:none}
+.empty{padding:34px 20px;text-align:center;color:var(--mut);font-size:14px;line-height:1.6;border-radius:var(--r);background:var(--card);border:1px solid var(--edge)}
+
+/* kort */
+.zone{position:relative;overflow:hidden;border-radius:var(--r);background:var(--card);border:1px solid var(--edge);padding:14px 14px 16px;touch-action:pan-y;transition:transform .12s ease, border-color .35s;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+.zone::before{content:"";position:absolute;inset:0;border-radius:inherit;opacity:0;transition:opacity .4s;pointer-events:none;background:radial-gradient(120% 80% at 50% 0%, rgba(224,122,46,.28), transparent 70%)}
 .zone.wide{grid-column:span 2}
-.zone.on{background:var(--amberbg);border-color:var(--amberline)}
-.zone.pressed{transform:scale(.97)}
-.zone.sw{min-height:96px}
-.zone.sw.on{background:#16261C;border-color:#24543A}
-.zone.sw.on .bulb{background:#46A758;color:#0B1A10}
-.zone.sw .pct{font-size:17px}
-.zone.offline{opacity:.45}
-.watt{font-size:12px;color:var(--mut);height:15px}
-.zone .fill{position:absolute;left:0;bottom:0;height:5px;background:var(--amber);width:0;transition:width .25s}
-.zone .row{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
-.bulb{width:36px;height:36px;border-radius:11px;background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;flex-shrink:0}
-.zone.on .bulb{background:var(--amber);color:#1A1305}
-.pct{font-size:20px;font-weight:700;color:var(--mut)}
+.zone.on{border-color:var(--edge2)}
+.zone.on::before{opacity:var(--zg,1)}
+.zone.pressed{transform:scale(.965)}
+.zone > *{position:relative}
+.head{display:flex;align-items:center;gap:8px}
+.ico{width:28px;height:28px;border-radius:50%;background:var(--card2);color:var(--mut);display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all .3s}
+.ico svg{width:15px;height:15px}
+.zone.on .ico{background:var(--amber);color:#2A1606;box-shadow:0 0 16px rgba(255,181,107,.55)}
+.name{font-size:13.5px;font-weight:400;line-height:1.2;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dial{position:relative;width:104px;height:104px;margin:10px auto 2px}
+.dial svg{width:104px;height:104px;display:block}
+.dial .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.pct{font-size:28px;font-weight:200;letter-spacing:-.5px;line-height:1;color:var(--dim)}
+.pct small{font-size:12px;font-weight:300;margin-left:1px}
 .zone.on .pct{color:var(--txt)}
-.name{font-size:16px;font-weight:650;margin-top:10px;line-height:1.2}
-.dir{font-size:12px;color:var(--amber);height:15px}
-.temps{display:none;gap:6px;margin-top:10px}
-.zone.on .temps{display:flex}
-.t{flex:1;height:32px;border-radius:10px;border:2px solid var(--amberline);background:#1D1912;display:flex;align-items:center;justify-content:center}
-.t.sel{border-color:#FFFFFF;background:#3A2E1D}
-.colors{display:none;grid-template-columns:repeat(8,minmax(0,1fr));gap:6px;margin-top:8px}
-.zone.on .colors{display:grid}
-.c{aspect-ratio:1;border-radius:50%;border:3px solid transparent;box-shadow:inset 0 0 0 2px rgba(0,0,0,.25)}
-.c.sel{border-color:#FFFFFF}
-.t span{width:14px;height:14px;border-radius:7px}
-.help{margin-top:22px;font-size:12px;color:var(--mut);line-height:1.5;text-align:center}
-.setup{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px}
-.setup h2{margin:0 0 6px;font-size:20px}
+.sub{font-size:10.5px;color:var(--mut);margin-top:5px;letter-spacing:.2px}
+.zone.on .sub{color:var(--amber)}
+.arc{transition:stroke-dasharray .25s}
+
+.zone.wide .body{display:flex;align-items:center;gap:16px}
+.zone.wide .dial{margin:6px 0 0}
+.zone.wide .side{flex:1;min-width:0}
+
+/* färgtemperatur – skala med streck */
+.tscale{display:none;margin-top:10px;padding-top:4px}
+.zone.on .tscale{display:block}
+.tlab{display:flex;justify-content:space-between;font-size:10px;color:var(--mut);margin-bottom:6px;letter-spacing:.2px}
+.ttrack{position:relative;height:26px;border-radius:13px;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,230,200,.30) 0 1px, transparent 1px 6px) center/calc(100% - 20px) 9px no-repeat,
+    linear-gradient(90deg, rgba(190,215,255,.16), rgba(255,240,215,.10), rgba(255,170,90,.22))}
+.knob{position:absolute;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(40,26,16,.85);border:1px solid rgba(255,220,180,.6);box-shadow:0 0 14px rgba(255,181,107,.45);display:flex;align-items:center;justify-content:center;gap:2px;transition:left .2s}
+.knob i{width:2.5px;height:2.5px;border-radius:50%;background:#F4ECE2}
+.colors{display:none;justify-content:space-between;gap:6px;margin-top:12px}
+.zone.on .colors{display:flex}
+.c{width:22px;height:22px;border-radius:50%;flex-shrink:0;border:2px solid transparent;outline:1px solid transparent;outline-offset:2px;box-shadow:0 0 10px currentColor}
+.c.sel{outline-color:var(--amber)}
+
+/* strömbrytare */
+.zone.sw{padding:14px}
+.zone.sw::before{background:radial-gradient(120% 80% at 50% 0%, rgba(143,216,160,.18), transparent 70%)}
+.zone.sw.on{border-color:rgba(143,216,160,.30)}
+.zone.sw.on .ico{background:var(--green);color:#082010;box-shadow:0 0 16px rgba(143,216,160,.5)}
+.swrow{display:flex;align-items:center;justify-content:space-between;margin-top:16px;gap:6px}
+.swstate{font-size:11px;color:var(--mut);line-height:1.3;min-width:0}
+.zone.sw.on .swstate{color:var(--txt)}
+.pill{height:30px;min-width:62px;border-radius:15px;border:1px solid var(--edge);background:rgba(0,0,0,.3);display:flex;align-items:center;justify-content:flex-start;gap:6px;padding:0 4px;font-size:10.5px;color:var(--mut);transition:all .25s}
+.pill b{width:22px;height:22px;border-radius:50%;background:#4A3E34;display:flex;align-items:center;justify-content:center;transition:all .25s}
+.pill b svg{width:12px;height:12px;color:#CFC3B6}
+.zone.sw.on .pill{flex-direction:row-reverse;border-color:rgba(143,216,160,.4);color:var(--green)}
+.zone.sw.on .pill b{background:var(--green)}
+.zone.sw.on .pill b svg{color:#082010}
+.pill span{padding:0 4px}
+.zone.offline{opacity:.4}
+
+.help{margin-top:26px;font-size:11.5px;color:var(--dim);line-height:1.6;text-align:center}
+
+/* inställningar */
+.setup{max-width:440px;margin:30px auto;background:var(--card);border:1px solid var(--edge);border-radius:var(--r);padding:22px}
+.setup h2{margin:0 0 6px;font-size:22px;font-weight:400}
 .setup p{color:var(--mut);font-size:14px;line-height:1.5;margin:0 0 14px}
 .setup label{display:block;font-size:13px;color:var(--mut);margin:12px 0 6px}
-.setup input{width:100%;height:46px;border-radius:12px;border:1px solid var(--line);background:#14171A;color:var(--txt);padding:0 12px;font-size:15px;user-select:text;-webkit-user-select:text}
-.btn{width:100%;height:48px;border-radius:14px;border:none;background:var(--amber);color:#1A1305;font-weight:700;font-size:16px;margin-top:18px}
-.btn.ghost{background:transparent;color:var(--mut);border:1px solid var(--line);margin-top:10px}
-.hidden{display:none!important}
+.setup input{width:100%;height:48px;border-radius:14px;border:1px solid var(--edge);background:rgba(0,0,0,.35);color:var(--txt);padding:0 14px;font-size:15px;font-family:inherit;user-select:text;-webkit-user-select:text}
+.btn{width:100%;height:50px;border-radius:999px;border:1px solid var(--edge2);background:rgba(255,181,107,.12);color:var(--amber);font-weight:500;font-size:16px;margin-top:18px}
+.btn.ghost{background:transparent;color:var(--mut);border-color:var(--edge);margin-top:10px}
 </style>
 </head>
 <body>
@@ -86,118 +158,158 @@ h1{margin:0;font-size:28px;font-weight:700;letter-spacing:-.4px}
 
 <main id="app" class="hidden">
   <div class="top">
-    <h1>Lampor</h1>
-    <button class="iconbtn" id="settingsBtn" aria-label="Inställningar">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    <span></span>
+    <div><h1 id="title">Hemma</h1><div class="hello" id="hello"></div></div>
+    <button class="ring-btn" id="settingsBtn" aria-label="Inställningar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/></svg>
     </button>
   </div>
+  <div class="hero" id="hero"></div>
   <nav class="tabs" id="tabs"></nav>
   <div class="status" id="status"></div>
   <div class="scenes" id="scenes"></div>
   <div id="floors"></div>
-  <div class="help">Tryck = tänd/släck · Håll in = dimra upp · Släpp och håll igen = dimra ner</div>
+  <div class="help"></div>
 </main>
 
 <script>
+// ---- Ikoner ----
+const I = (d, w=20) => `<svg width="${w}" height="${w}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const ICONS = {
+  bulb:  '<path d="M9 18h6M10 21h4"/><path d="M12 3a6 6 0 0 0-3.5 10.9V16h7v-2.1A6 6 0 0 0 12 3z"/>',
+  sofa:  '<path d="M4 11V8a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v3"/><path d="M2 13a2 2 0 0 1 4 0v2h12v-2a2 2 0 0 1 4 0v4H2z"/><path d="M5 17v2M19 17v2"/>',
+  kitchen:'<path d="M6 3v7a2 2 0 0 0 4 0V3M8 3v18M16 21V3c2.5 1 3.5 3.5 3.5 6.5S18 13 16 13"/>',
+  spot:  '<path d="M8 4h8l-1.5 6h-5z"/><path d="M12 10v2M7 20l2.5-6M17 20l-2.5-6M12 14v6"/>',
+  door:  '<path d="M6 21V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v17M3 21h18"/><circle cx="14.5" cy="12" r=".8" fill="currentColor"/>',
+  bed:   '<path d="M3 18V7M3 13h18v5M21 13a3 3 0 0 0-3-3h-7v3"/><circle cx="7" cy="10.5" r="1.5"/>',
+  tv:    '<rect x="3" y="5" width="18" height="12" rx="2"/><path d="M8 21h8"/>',
+  table: '<path d="M3 9h18M5 9v11M19 9v11M8 9l1-4h6l1 4"/>',
+  tree:  '<path d="M12 22v-6M8 16h8l-2-4h2l-4-9-4 9h2z"/>',
+  house: '<path d="M3 11l9-7 9 7M5 9.5V20h14V9.5"/>',
+  plug:  '<path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/>',
+  drop:  '<path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/>',
+  wifi:  '<path d="M2 8.5a15 15 0 0 1 20 0M5 12a10 10 0 0 1 14 0M8.5 15.5a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/>',
+  coffee:'<path d="M4 8h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 10h2a2 2 0 0 1 0 4h-2M8 2v3M12 2v3"/>',
+  globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+  battery:'<rect x="3" y="7" width="16" height="10" rx="2"/><path d="M22 11v2M7 10l-1 2h3l-1 2"/>',
+  moon:  '<path d="M20 14.5A8 8 0 1 1 9.5 4 6.5 6.5 0 0 0 20 14.5z"/>',
+  power: '<path d="M12 3v8"/><path d="M6.3 6.6a8 8 0 1 0 11.4 0"/>',
+  sun:   '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+  bolt:  '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+};
+
 // ---- Konfiguration: zoner (grupp-enheter i Homey) ----
 const PAGES = [
   { key: 'botten', name: 'Bottenvåning', sections: [
     { name: 'Hela våningen', zones: [
-      { id: '82351d3e-ff80-4ac3-bf93-051f7105161f', name: 'Vardagsrum', wide: true },
-      { id: 'a0686c67-4a06-4723-82cc-dbb49a73f01b', name: 'Kök' },
-      { id: '7c602ef4-7ea0-4d0e-bde2-7e18dabb4389', name: 'Entré' },
+      { id: '82351d3e-ff80-4ac3-bf93-051f7105161f', name: 'Vardagsrum', icon: 'sofa', wide: true },
+      { id: 'a0686c67-4a06-4723-82cc-dbb49a73f01b', name: 'Kök', icon: 'kitchen' },
+      { id: '7c602ef4-7ea0-4d0e-bde2-7e18dabb4389', name: 'Entré', icon: 'door' },
     ]},
     { name: 'Kök', zones: [
-      { id: '2dd5c7b9-61e1-4349-bb83-7444ade7f5be', name: 'Köksbänk' },
-      { id: 'a43e3e8b-181a-4316-ab9d-08a1c4b7a8cb', name: 'Köksön' },
+      { id: '2dd5c7b9-61e1-4349-bb83-7444ade7f5be', name: 'Köksbänk', icon: 'spot' },
+      { id: 'a43e3e8b-181a-4316-ab9d-08a1c4b7a8cb', name: 'Köksön', icon: 'spot' },
     ]},
     { name: 'Vardagsrum', zones: [
-      { id: '9d9dd3c5-d4b1-43d0-a636-49b1a50a0c5c', name: 'Ginhörnan' },
-      { id: 'e8b967eb-ced9-4ab0-bf51-b4fd94446935', name: 'Middagsbord' },
-      { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger' },
-      { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten' },
-      { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster' },
-      { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning', wide: true, colors: ['6129d248-3386-4ca1-b1f1-0cd9c0c57e09','3ff61ca7-4d1f-41a6-af3d-c6a7e1ecd5ed','809dc059-10e3-48b5-9dac-b9fcbd599a5b','bc6f628d-36b1-41d5-9796-d51076504d7a','27582ca7-53af-4bdc-8334-307105a857a9','03d8927a-b897-494d-9b0a-5e2666a08c5e','43664ba8-22d1-4931-b908-0b269f34cbbc','dc5e6d13-7d5b-4f92-a1f7-e20d566c5e77','e7e46f94-c970-49cd-83cc-0db131a18234'] },
+      { id: '9d9dd3c5-d4b1-43d0-a636-49b1a50a0c5c', name: 'Ginhörnan', icon: 'bulb' },
+      { id: 'e8b967eb-ced9-4ab0-bf51-b4fd94446935', name: 'Middagsbord', icon: 'table' },
+      { id: 'b4eda532-b54d-400e-8e46-3f95280347ce', name: 'Höger', icon: 'spot' },
+      { id: '9b480d47-fe8b-4927-9f5a-5b8311de3bd7', name: 'Mitten', icon: 'spot' },
+      { id: '30544e8b-e6c2-4656-99ff-90f0597eb09a', name: 'Vänster', icon: 'spot' },
+      { id: '3ac6c467-bccc-4c84-a853-d948b8db2bc8', name: 'TV-belysning', icon: 'tv', wide: true, colors: ['6129d248-3386-4ca1-b1f1-0cd9c0c57e09','3ff61ca7-4d1f-41a6-af3d-c6a7e1ecd5ed','809dc059-10e3-48b5-9dac-b9fcbd599a5b','bc6f628d-36b1-41d5-9796-d51076504d7a','27582ca7-53af-4bdc-8334-307105a857a9','03d8927a-b897-494d-9b0a-5e2666a08c5e','43664ba8-22d1-4931-b908-0b269f34cbbc','dc5e6d13-7d5b-4f92-a1f7-e20d566c5e77','e7e46f94-c970-49cd-83cc-0db131a18234'] },
     ]},
     { name: 'Övrigt', zones: [
-      { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv' },
+      { id: '01f58209-c810-4bb4-979d-8699f250ef4f', name: 'Gästrum bv', icon: 'bed' },
     ]},
   ]},
   { key: 'over', name: 'Övervåning', sections: [
     { name: 'Rum', zones: [
-      { id: 'cc806e65-03fb-4905-a2f7-181d8574ea51', name: 'Sovrum' },
-      { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv' },
+      { id: 'cc806e65-03fb-4905-a2f7-181d8574ea51', name: 'Sovrum', icon: 'bed' },
+      { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv', icon: 'bed' },
     ]},
   ]},
   { key: 'garage', name: 'Garage', sections: [], empty: 'Det finns inga lampor i garaget i Homey ännu. När du lägger till lampor där kan jag lägga in dem här.' },
   { key: 'ute', name: 'Utomhus', sections: [
     { name: 'Fasad & uppfart', zones: [
-      { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'All utebelysning', wide: true },
-      { id: '1b14ef1d-740f-4ab7-8149-4cdb24da448d', name: 'Fasad framsida' },
-      { id: 'f66feb44-7690-4c6a-87e9-5f352c25349a', name: 'Entréstolpe front' },
-      { id: '9213fb7d-ef86-4bed-88c4-f059845cc1e8', name: 'Entréstolpe uppfart' },
+      { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'All utebelysning', icon: 'house', wide: true },
+      { id: '1b14ef1d-740f-4ab7-8149-4cdb24da448d', name: 'Fasad framsida', icon: 'house' },
+      { id: 'f66feb44-7690-4c6a-87e9-5f352c25349a', name: 'Entréstolpe front', icon: 'bulb' },
+      { id: '9213fb7d-ef86-4bed-88c4-f059845cc1e8', name: 'Entréstolpe uppfart', icon: 'bulb' },
     ]},
   ]},
   // Strömbrytare (Smart Life/Tuya) – bara på/av. guard = fråga innan avstängning
   { key: 'el', name: 'Strömbrytare', sw: true, sections: [
     { name: 'Kök', zones: [
-      { id: 'c0aea280-53a0-48be-821e-4dd2e7b12b10', name: 'Kaffebryggare' },
+      { id: 'c0aea280-53a0-48be-821e-4dd2e7b12b10', name: 'Kaffebryggare', icon: 'coffee' },
     ]},
     { name: 'Badrum', zones: [
-      { id: '2fd43deb-4b2a-4b7f-ac98-e082b2c0e3e8', name: 'Led badrum' },
+      { id: '2fd43deb-4b2a-4b7f-ac98-e082b2c0e3e8', name: 'Led badrum', icon: 'bulb' },
     ]},
     { name: 'Övervåning', zones: [
-      { id: '167a63c5-a667-447f-abfc-a80337246848', name: 'Jordglob' },
-      { id: '6418f2ef-0fd7-4299-958a-264d6ad23291', name: 'Taxlampan' },
+      { id: '167a63c5-a667-447f-abfc-a80337246848', name: 'Jordglob', icon: 'globe' },
+      { id: '6418f2ef-0fd7-4299-958a-264d6ad23291', name: 'Taxlampan', icon: 'bulb' },
     ]},
     { name: 'Fasad & uppfart', zones: [
-      { id: 'd489f2d7-bec6-4d69-88b6-4380e13f220d', name: 'Led bambu uppfart' },
+      { id: 'd489f2d7-bec6-4d69-88b6-4380e13f220d', name: 'Led bambu uppfart', icon: 'tree' },
     ]},
     { name: 'Dammbelysning', zones: [
-      { id: '930144d4-1c83-4f52-80d7-a2a0fd3f7fa4', name: 'Belysning vattenfall' },
-      { id: '7f853126-bbee-4c35-b44b-41b2521c93c2', name: 'Dammbelysning skymning' },
+      { id: '930144d4-1c83-4f52-80d7-a2a0fd3f7fa4', name: 'Belysning vattenfall', icon: 'bulb' },
+      { id: '7f853126-bbee-4c35-b44b-41b2521c93c2', name: 'Dammbelysning skymning', icon: 'bulb' },
     ]},
     { name: 'Trädgård – dammen', zones: [
-      { id: 'c4aa13b5-96d7-4975-bd8d-c0c2c00ccaa2', name: 'Huvudström dammen', wide: true, guard: true },
-      { id: '7804b297-c82d-4c4f-8799-65ee23eb4c7c', name: 'Extrapump cirkulation', guard: true },
-      { id: '3a032342-5206-40e9-adf1-b39c52c19a85', name: 'Luftpump center', guard: true },
-      { id: '7c20c205-b141-4db9-b5c1-bd01c8f34684', name: 'Ny luftpump center', guard: true },
-      { id: '4760fc57-34a8-407a-b94c-b8e93cf49791', name: 'Pumpsystem (fd luftpump extra)', guard: true },
-      { id: '4943a861-b08d-4f63-95dc-baced81a1670', name: 'Vattenfall luftpump', guard: true },
-      { id: '32bb38f6-4b28-4efa-ae5b-09d8536d6197', name: 'Vattenfallpump', guard: true },
-      { id: 'ffab1acf-7cea-4ac4-9081-5a0d22de00b4', name: 'Pump grundvatten', guard: true },
+      { id: 'c4aa13b5-96d7-4975-bd8d-c0c2c00ccaa2', name: 'Huvudström dammen', icon: 'power', wide: true, guard: true },
+      { id: '7804b297-c82d-4c4f-8799-65ee23eb4c7c', name: 'Extrapump cirkulation', icon: 'drop', guard: true },
+      { id: '3a032342-5206-40e9-adf1-b39c52c19a85', name: 'Luftpump center', icon: 'drop', guard: true },
+      { id: '7c20c205-b141-4db9-b5c1-bd01c8f34684', name: 'Ny luftpump center', icon: 'drop', guard: true },
+      { id: '4760fc57-34a8-407a-b94c-b8e93cf49791', name: 'Pumpsystem (fd luftpump extra)', icon: 'drop', guard: true },
+      { id: '4943a861-b08d-4f63-95dc-baced81a1670', name: 'Vattenfall luftpump', icon: 'drop', guard: true },
+      { id: '32bb38f6-4b28-4efa-ae5b-09d8536d6197', name: 'Vattenfallpump', icon: 'drop', guard: true },
+      { id: 'ffab1acf-7cea-4ac4-9081-5a0d22de00b4', name: 'Pump grundvatten', icon: 'drop', guard: true },
     ]},
     { name: 'Övriga strömbrytare', zones: [
-      { id: '665a1e58-0616-4158-acf1-56fffc9ef541', name: 'WIFI', guard: true },
-      { id: '080be9ed-efa5-48a0-90f9-88df8f948c04', name: 'DeWalt batteriladdare' },
+      { id: '665a1e58-0616-4158-acf1-56fffc9ef541', name: 'WIFI', icon: 'wifi', guard: true },
+      { id: '080be9ed-efa5-48a0-90f9-88df8f948c04', name: 'DeWalt batteriladdare', icon: 'battery' },
     ]},
   ]},
 ];
-const plugSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v10"/><path d="M18.4 6.6a9 9 0 1 1-12.8 0"/></svg>';
-let currentPage = (() => { try { return localStorage.getItem('page') || 'botten' } catch(e){ return 'botten' } })();
-if (!PAGES.some(p => p.key === currentPage)) currentPage = 'botten';
-// Scener = flöden i Homey ("Scen – …") som startas med knapptryck
 const SCENES = [
-  { label: 'Släck allt', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
-  { label: 'Tänd nere', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
-  { label: 'Kväll', flow: '5c685373-58ce-4532-94ed-11891f5737e1' },
-  { label: 'TV', flow: '89d79a92-b486-4a46-bfa9-d901c49ef3fd' },
+  { label: 'Släck allt', icon: 'power', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
+  { label: 'Tänd nere', icon: 'sun', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
+  { label: 'Kväll', icon: 'moon', flow: '5c685373-58ce-4532-94ed-11891f5737e1' },
+  { label: 'TV', icon: 'tv', flow: '89d79a92-b486-4a46-bfa9-d901c49ef3fd' },
 ];
-const TEMPS = [ ['Kallt', 0, '#CFE3FF'], ['Neutralt', 0.5, '#FFF4E0'], ['Varmt', 1, '#FFC67A'] ];
-// Färger för RGBWW-lamporna (hue 0–1)
-const COLORS = [ ['Röd',0,'#E5484D'], ['Orange',0.07,'#F2853A'], ['Gul',0.14,'#F5D90A'], ['Grön',0.33,'#46A758'], ['Turkos',0.5,'#2EC4C4'], ['Blå',0.63,'#3E7BFA'], ['Lila',0.76,'#8B5CF6'], ['Rosa',0.9,'#E93D82'] ];
 
+const COLORS = [ ['Röd',0,'#FF5A5F'], ['Orange',0.07,'#FF9440'], ['Gul',0.14,'#FFD93D'], ['Grön',0.33,'#4CD47A'], ['Turkos',0.5,'#2ED1D1'], ['Blå',0.63,'#4D84FF'], ['Lila',0.76,'#9C6BFF'], ['Rosa',0.9,'#FF4F9A'] ];
 const HOLD_MS = 380, STEP = 0.06, TICK_MS = 220, REVERSE_WINDOW_MS = 4000, MIN_DIM = 0.01;
+const HELP_LAMP = 'Tryck = tänd/släck · Håll in = dimra upp · Släpp och håll igen = dimra ner · Dra på skalan för färgtemperatur';
+const HELP_SW = 'Tryck = slå på/av. Pumpar och WIFI frågar innan de stängs av.';
 
-// ---- Lagring (bara i telefonen) ----
+// ---- Lagring ----
 const store = {
   get(k){ try { return localStorage.getItem(k) } catch(e){ return null } },
   set(k,v){ try { localStorage.setItem(k,v) } catch(e){} },
 };
+let currentPage = store.get('page') || 'botten';
+if (!PAGES.some(p => p.key === currentPage)) currentPage = 'botten';
 let cfg = { homeyId: store.get('homeyId') || '69adf39d04f654178861fde7', key: store.get('apiKey') || '' };
+const DEMO = new URLSearchParams(location.search).has('demo');
 const base = () => `https://${cfg.homeyId}.connect.athom.com/api`;
 
+// Demoläge (?demo) – låtsas-Homey så designen kan visas utan nyckel
+const demoDb = {};
+function demoDev(id){
+  if (!demoDb[id]){ const h = parseInt(id.slice(0,6),16); demoDb[id] = { onoff: h%3!==0, dim: ((h%80)+15)/100, light_temperature: [0.15,0.5,0.9][h%3], measure_power: id.startsWith('c4aa') ? 605 : null }; }
+  const d = demoDb[id]; const caps = { onoff:{value:d.onoff}, dim:{value:d.dim}, light_temperature:{value:d.light_temperature} };
+  if (d.measure_power !== null) caps.measure_power = { value: d.measure_power };
+  return { available: !id.startsWith('2fd4'), capabilitiesObj: caps };
+}
 async function api(method, path, body){
+  if (DEMO){
+    const m = path.match(/device\/([^/]+)(?:\/capability\/(\w+))?/);
+    if (m && method === 'PUT'){ demoDev(m[1]); demoDb[m[1]][m[2]] = body.value; return {}; }
+    if (m) return demoDev(m[1]);
+    return {};
+  }
   const res = await fetch(base() + path, {
     method,
     headers: { 'Authorization': 'Bearer ' + cfg.key, ...(body ? {'Content-Type':'application/json'} : {}) },
@@ -209,14 +321,41 @@ async function api(method, path, body){
 }
 const setCap = (id, cap, value) => api('PUT', `/manager/devices/device/${id}/capability/${cap}`, { value });
 
+// ---- Mätare (270°-båge) ----
+function gaugeSvg(size, opts={}){
+  const ticks = opts.ticks ? `<circle cx="50" cy="50" r="47" fill="none" stroke="rgba(255,220,180,.22)" stroke-width="2.2" pathLength="300" stroke-dasharray=".6 4.4" transform="rotate(135 50 50)" style="stroke-dasharray:.6 4.4;"/>` : '';
+  return `<svg viewBox="0 0 100 100">${ticks}
+    <circle cx="50" cy="50" r="40" fill="none" stroke="rgba(255,220,180,.10)" stroke-width="${opts.w||2.2}" pathLength="100" stroke-dasharray="75 100" stroke-linecap="round" transform="rotate(135 50 50)"/>
+    <circle class="arc" cx="50" cy="50" r="40" fill="none" stroke="url(#ag)" stroke-width="${(opts.w||2.2)+.8}" pathLength="100" stroke-dasharray="0 100" stroke-linecap="round" transform="rotate(135 50 50)"/>
+    <circle class="tip" cx="50" cy="10" r="2.6" fill="#FFE2BF" style="filter:drop-shadow(0 0 3px #FFB56B);opacity:0" transform="rotate(-135 50 50)"/>
+  </svg>`;
+}
+function setGauge(root, v){
+  v = Math.max(0, Math.min(1, v || 0));
+  root.querySelector('.arc').setAttribute('stroke-dasharray', `${(75*v).toFixed(2)} 100`);
+  const tip = root.querySelector('.tip');
+  tip.setAttribute('transform', `rotate(${-135 + 270*v} 50 50)`);
+  tip.style.opacity = v > 0.005 ? 1 : 0;
+}
+
 // ---- UI ----
 const $ = s => document.querySelector(s);
 const statusEl = $('#status');
 function status(msg, err){ statusEl.textContent = msg || ''; statusEl.classList.toggle('err', !!err); }
+const state = {};
 
-const state = {}; // id -> {on, dim, el, lastHoldEnd, lastDir}
-const bulbSvg = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2z"/></svg>';
-
+function greet(){
+  const h = new Date().getHours();
+  const g = h < 5 ? 'God natt' : h < 10 ? 'God morgon' : h < 17 ? 'God dag' : h < 22 ? 'God kväll' : 'God natt';
+  const d = new Date().toLocaleDateString('sv-SE', { weekday:'long', day:'numeric', month:'long' });
+  $('#hello').textContent = g + ' · ' + d;
+}
+function renderHero(){
+  const page = PAGES.find(p => p.key === currentPage);
+  const a = page.sw ? ['plug','På'] : ['bulb','Tända'];
+  const b = page.sw ? ['bolt','Dammen'] : ['sun','Snittljus'];
+  $('#hero').innerHTML = [a,b].map((x,i) => `<div class="gauge" id="g${i}">${gaugeSvg(112,{ticks:true,w:1.6})}<div class="in">${I(ICONS[x[0]],18)}<div class="val">–</div></div><div class="lbl">${x[1]}</div></div>`).join('');
+}
 function renderTabs(){
   const nav = $('#tabs'); nav.innerHTML = '';
   for (const p of PAGES){
@@ -226,58 +365,91 @@ function renderTabs(){
     b.onclick = () => showPage(p.key);
     nav.appendChild(b);
   }
-  requestAnimationFrame(() => { const a = nav.querySelector('.tab.active'); if (a) nav.scrollLeft = Math.max(0, a.offsetLeft + a.offsetWidth - nav.clientWidth + 8) > nav.scrollLeft || a.offsetLeft < nav.scrollLeft ? (a.offsetLeft < nav.scrollLeft ? a.offsetLeft - 4 : a.offsetLeft + a.offsetWidth - nav.clientWidth + 8) : nav.scrollLeft; });
+  requestAnimationFrame(() => { const a = nav.querySelector('.tab.active'); if (!a) return;
+    if (a.offsetLeft + a.offsetWidth > nav.scrollLeft + nav.clientWidth - 18) nav.scrollLeft = a.offsetLeft + a.offsetWidth - nav.clientWidth + 18;
+    else if (a.offsetLeft < nav.scrollLeft + 18) nav.scrollLeft = a.offsetLeft - 18; });
 }
 function showPage(key){
   currentPage = key; store.set('page', key);
   renderTabs(); render(); refresh(); window.scrollTo(0,0);
 }
-const HELP_LAMP = 'Tryck = tänd/släck · Håll in = dimra upp · Släpp och håll igen = dimra ner';
-const HELP_SW = 'Tryck = slå på/av. Pumpar och WIFI frågar innan de stängs av.';
 function render(){
   const floors = $('#floors'); floors.innerHTML = '';
   for (const k of Object.keys(state)) delete state[k];
   const page = PAGES.find(p => p.key === currentPage);
+  $('#title').textContent = page.name;
   $('.help').textContent = page.sw ? HELP_SW : HELP_LAMP;
+  $('#scenes').classList.toggle('hidden', !!page.sw);
+  renderHero();
   if (page.empty && !page.sections.length){
     const e = document.createElement('div'); e.className = 'empty'; e.textContent = page.empty; floors.appendChild(e);
   }
   for (const f of page.sections){
-    const h = document.createElement('div'); h.className = 'floor'; h.textContent = f.name; floors.appendChild(h);
+    const h = document.createElement('div'); h.className = 'floor';
+    h.innerHTML = `<h2></h2><span>${f.zones.length} ${page.sw ? 'brytare' : (f.zones.length === 1 ? 'zon' : 'zoner')}</span>`;
+    h.querySelector('h2').textContent = f.name; floors.appendChild(h);
     const g = document.createElement('div'); g.className = 'grid'; floors.appendChild(g);
     for (const z of f.zones){
-      const el = document.createElement('div');
       if (page.sw) z.sw = true;
+      const el = document.createElement('div');
       el.className = 'zone' + (z.wide ? ' wide' : '') + (z.sw ? ' sw' : '');
-      el.innerHTML = z.sw ? `<div class="row"><div class="bulb">${plugSvg}</div><div class="pct">–</div></div>
-        <div><div class="name"></div><div class="watt"></div></div><div class="fill"></div>` : `<div class="row"><div class="bulb">${bulbSvg}</div><div class="pct">–</div></div>
-        <div><div class="name"></div><div class="dir"></div></div>
-        <div class="temps">${TEMPS.map(t=>`<div class="t" data-t="${t[1]}" aria-label="${t[0]}"><span style="background:${t[2]}"></span></div>`).join('')}</div>
-        ${z.colors ? `<div class="colors">${COLORS.map(c=>`<div class="c" data-h="${c[1]}" aria-label="${c[0]}" style="background:${c[2]}"></div>`).join('')}</div>` : ''}
-        <div class="fill"></div>`;
+      const ic = I(ICONS[z.icon || (z.sw ? 'plug' : 'bulb')]);
+      if (z.sw){
+        el.innerHTML = `<div class="head"><div class="ico">${ic}</div><div class="name"></div></div>
+          <div class="swrow"><div class="swstate"></div><div class="pill"><b>${I(ICONS.power,12)}</b><span>Av</span></div></div>`;
+      } else {
+        const temps = `<div class="tscale"><div class="tlab"><span>Kallt</span><span class="tval"></span><span>Varmt</span></div><div class="ttrack"><div class="knob"><i></i><i></i><i></i></div></div></div>`;
+        const colors = z.colors ? `<div class="colors">${COLORS.map(c=>`<div class="c" data-h="${c[1]}" aria-label="${c[0]}" style="background:${c[2]};color:${c[2]}"></div>`).join('')}</div>` : '';
+        const dial = `<div class="dial">${gaugeSvg(104,{ticks:true})}<div class="num"><div class="pct">–</div><div class="sub"></div></div></div>`;
+        el.innerHTML = z.wide
+          ? `<div class="head"><div class="ico">${ic}</div><div class="name"></div></div><div class="body">${dial}<div class="side">${temps}${colors}</div></div>`
+          : `<div class="head"><div class="ico">${ic}</div><div class="name"></div></div>${dial}${temps}${colors}`;
+      }
       el.querySelector('.name').textContent = z.name;
       g.appendChild(el);
-      state[z.id] = { on:false, dim:0, temp:null, mode:null, hue:null, power:null, avail:true, el, z, lastHoldEnd:0, lastDir:'down', busy:false };
+      state[z.id] = { on:false, dim:0, temp:null, mode:null, hue:null, power:null, avail:true, el, z, lastHoldEnd:0, lastDir:'down', busy:false, dirText:'' };
       bindZone(z, el);
     }
   }
+  summary();
+}
+function summary(){
+  const all = Object.values(state);
+  const page = PAGES.find(p => p.key === currentPage);
+  const g0 = $('#g0'), g1 = $('#g1'); if (!g0) return;
+  const on = all.filter(s => s.on && s.avail);
+  setGauge(g0, all.length ? on.length / all.length : 0);
+  g0.querySelector('.val').innerHTML = all.length ? `${on.length}<small>/${all.length}</small>` : '–';
+  if (page.sw){
+    const p = state['c4aa13b5-96d7-4975-bd8d-c0c2c00ccaa2'];
+    const w = p && typeof p.power === 'number' ? p.power : null;
+    setGauge(g1, w === null ? 0 : Math.min(1, w / 1000));
+    g1.querySelector('.val').innerHTML = w === null ? '–' : `${Math.round(w)}<small>W</small>`;
+  } else {
+    const avg = on.length ? on.reduce((a,s) => a + s.dim, 0) / on.length : 0;
+    setGauge(g1, avg);
+    g1.querySelector('.val').innerHTML = on.length ? `${Math.round(avg*100)}<small>%</small>` : '–';
+  }
+  document.documentElement.style.setProperty('--glow', page.sw ? .35 : (all.length ? Math.min(1, on.length / all.length * 1.4) : 0).toFixed(2));
 }
 function renderScenes(){
   const sc = $('#scenes'); sc.innerHTML = '';
   for (const s of SCENES){
     const b = document.createElement('button');
     b.className = 'scene' + (s.primary ? ' off' : '');
-    b.textContent = s.label;
+    b.innerHTML = `<div class="ic">${I(ICONS[s.icon], 21)}</div><span></span>`;
+    b.querySelector('span').textContent = s.label;
     b.onclick = () => runScene(s, b);
     sc.appendChild(b);
   }
 }
 
-// svep åt vänster/höger för att byta sida
+// svep för att byta sida
 (() => {
-  let sx = 0, sy = 0, t0 = 0;
-  document.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; t0 = Date.now(); }, { passive: true });
+  let sx = 0, sy = 0, t0 = 0, skip = false;
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; sx = t.clientX; sy = t.clientY; t0 = Date.now(); skip = !!e.target.closest('.tabs,.ttrack'); }, { passive: true });
   document.addEventListener('touchend', e => {
+    if (skip) return;
     const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
     if (Date.now() - t0 > 600 || Math.abs(dx) < 70 || Math.abs(dy) > Math.abs(dx) * 0.6) return;
     if (document.querySelector('.zone.pressed')) return;
@@ -287,38 +459,47 @@ function renderScenes(){
   }, { passive: true });
 })();
 
+const TEMPNAME = t => t === null ? '' : t <= 0.3 ? 'Kallvitt' : t >= 0.7 ? 'Varmvitt' : 'Neutralt';
+const KELVIN = t => Math.round((6500 - t * 3800) / 100) * 100; // ungefärlig
 function paint(id){
   const s = state[id]; if (!s) return;
-  s.el.classList.toggle('on', s.on);
+  s.el.classList.toggle('on', s.on && s.avail);
   if (s.z.sw){
     s.el.classList.toggle('offline', !s.avail);
-    s.el.querySelector('.pct').textContent = !s.avail ? 'Offline' : (s.on ? 'På' : 'Av');
-    s.el.querySelector('.watt').textContent = (typeof s.power === 'number') ? Math.round(s.power) + ' W' : '';
-    return;
+    s.el.querySelector('.swstate').textContent = !s.avail ? 'Offline' : (typeof s.power === 'number') ? Math.round(s.power) + ' W' : (s.z.guard ? 'Skyddad' : '');
+    s.el.querySelector('.pill span').textContent = !s.avail ? '–' : s.on ? 'På' : 'Av';
+    summary(); return;
   }
-  s.el.querySelector('.pct').textContent = s.on ? Math.round(s.dim*100) + ' %' : 'Av';
-  s.el.querySelector('.fill').style.width = s.on ? Math.round(s.dim*100) + '%' : '0';
+  const p = Math.round(s.dim*100);
+  s.el.style.setProperty('--zg', s.on ? (0.35 + 0.65*s.dim).toFixed(2) : 0);
+  s.el.querySelector('.pct').innerHTML = s.on ? `${p}<small>%</small>` : '<small>Av</small>';
+  setGauge(s.el.querySelector('.dial'), s.on ? s.dim : 0);
   const colorMode = s.mode === 'color';
-  s.el.querySelectorAll('.t').forEach(t => t.classList.toggle('sel', !colorMode && s.temp !== null && Math.abs(Number(t.dataset.t) - s.temp) <= 0.17));
+  s.el.querySelector('.sub').textContent = s.dirText || (s.on ? (colorMode ? 'Färg' : TEMPNAME(s.temp)) : 'Släckt');
+  const k = s.el.querySelector('.knob');
+  if (k){ k.style.left = `calc(11px + (100% - 22px) * ${s.temp ?? 0.5})`; k.style.opacity = colorMode || s.temp === null ? .35 : 1; }
+  const tv = s.el.querySelector('.tval'); if (tv) tv.textContent = (!colorMode && s.temp !== null) ? KELVIN(s.temp) + ' K' : '';
   s.el.querySelectorAll('.c').forEach(c => { const d = Math.abs(Number(c.dataset.h) - (s.hue ?? -9)); c.classList.toggle('sel', colorMode && Math.min(d, 1 - d) <= 0.05); });
+  summary();
 }
 
 function bindZone(z, el){
   let timer = null, ramp = null, holding = false, startX = 0, startY = 0, moved = false;
   const s = () => state[z.id];
-
+  const isCtl = t => t.closest && t.closest('.tscale,.c');
   el.addEventListener('pointerdown', e => {
-    if (e.target.closest('.t,.c')) return;
+    if (isCtl(e.target)) return;
     el.setPointerCapture(e.pointerId);
     startX = e.clientX; startY = e.clientY; moved = false; holding = false;
     el.classList.add('pressed');
     if (!z.sw) timer = setTimeout(() => startHold(), HOLD_MS);
   });
   el.addEventListener('pointermove', e => {
+    if (isCtl(e.target)) return;
     if (Math.abs(e.clientX-startX) > 12 || Math.abs(e.clientY-startY) > 12){ moved = true; clearTimeout(timer); if (!holding) el.classList.remove('pressed'); }
   });
   const end = e => {
-    if (e.target.closest && e.target.closest('.t,.c')) return;
+    if (isCtl(e.target)) return;
     clearTimeout(timer); el.classList.remove('pressed');
     if (holding){ stopHold(); return; }
     if (!moved && e.type === 'pointerup') toggle();
@@ -327,14 +508,23 @@ function bindZone(z, el){
   el.addEventListener('pointercancel', end);
   el.addEventListener('contextmenu', e => e.preventDefault());
 
-  el.querySelectorAll('.t').forEach(t => t.addEventListener('click', async ev => {
-    ev.stopPropagation();
-    const st = s(); st.temp = Number(t.dataset.t); st.mode = 'temperature'; paint(z.id); vibrate(15);
-    try {
-      if (z.colors) await Promise.all(z.colors.map(id => setCap(id, 'light_temperature', st.temp).catch(()=>{})));
-      else await setCap(z.id, 'light_temperature', st.temp);
-    } catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
-  }));
+  // färgtemperatur: tryck eller dra på skalan
+  const track = el.querySelector('.ttrack');
+  if (track){
+    let dragging = false;
+    const at = e => { const r = track.getBoundingClientRect(); return Math.round(Math.max(0, Math.min(1, (e.clientX - r.left - 11) / (r.width - 22))) * 20) / 20; };
+    const send = async () => {
+      const st = s();
+      try {
+        if (z.colors) await Promise.all(z.colors.map(id => setCap(id, 'light_temperature', st.temp).catch(()=>{})));
+        else await setCap(z.id, 'light_temperature', st.temp);
+      } catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
+    };
+    track.addEventListener('pointerdown', e => { e.stopPropagation(); dragging = true; track.setPointerCapture(e.pointerId); const st = s(); st.temp = at(e); st.mode = 'temperature'; paint(z.id); vibrate(10); });
+    track.addEventListener('pointermove', e => { if (!dragging) return; const st = s(); const v = at(e); if (v !== st.temp){ st.temp = v; paint(z.id); } });
+    const up = e => { if (!dragging) return; dragging = false; e.stopPropagation(); vibrate(15); send(); };
+    track.addEventListener('pointerup', up); track.addEventListener('pointercancel', up);
+  }
   el.querySelectorAll('.c').forEach(c => c.addEventListener('click', async ev => {
     ev.stopPropagation();
     const st = s(); st.hue = Number(c.dataset.h); st.mode = 'color'; paint(z.id); vibrate(15);
@@ -353,14 +543,13 @@ function bindZone(z, el){
     try { await setCap(z.id, 'onoff', next); status(''); }
     catch(err){ st.on = !next; paint(z.id); status('Kunde inte styra ' + z.name + ': ' + err.message, true); }
   }
-
   function startHold(){
     holding = true; const st = s();
     const recent = Date.now() - st.lastHoldEnd < REVERSE_WINDOW_MS;
     let dir = recent ? (st.lastDir === 'up' ? 'down' : 'up') : 'up';
     if (!st.on){ dir = 'up'; st.dim = 0; st.on = true; }
     st.lastDir = dir;
-    el.querySelector('.dir').textContent = dir === 'up' ? '▲ ljusare' : '▼ mörkare';
+    st.dirText = dir === 'up' ? '▲ Ljusare' : '▼ Mörkare';
     vibrate(25);
     const tick = async () => {
       if (!holding) return;
@@ -379,49 +568,47 @@ function bindZone(z, el){
   }
   async function stopHold(){
     holding = false; clearTimeout(ramp);
-    const st = s(); st.lastHoldEnd = Date.now();
-    el.querySelector('.dir').textContent = '';
-    // skicka slutvärdet så att lamporna landar exakt där reglaget stannade
+    const st = s(); st.lastHoldEnd = Date.now(); st.dirText = ''; paint(z.id);
     try { await setCap(z.id, 'dim', Math.round(st.dim*100)/100); } catch(e){}
   }
 }
-
 function vibrate(ms){ try { navigator.vibrate && navigator.vibrate(ms) } catch(e){} }
 
 async function runScene(s, btn){
   btn.disabled = true; vibrate(20);
   try {
     await api('POST', `/manager/flow/flow/${s.flow}/trigger`);
-    status(s.label + ' ✓'); setTimeout(refresh, 1500);
+    btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1200);
+    status(''); setTimeout(refresh, 1500);
   } catch(err){ status('Scen ' + s.label + ': ' + err.message, true); }
   finally { btn.disabled = false; }
 }
 
 // ---- Läs av status ----
 async function refresh(){
-  if (document.hidden || !cfg.key) return;
-  const ids = Object.keys(state).filter(id => !id.startsWith('__'));
-  await Promise.all(ids.map(async id => {
-    const st = state[id]; if (st.busy) return;
+  if (document.hidden || (!cfg.key && !DEMO)) return;
+  await Promise.all(Object.keys(state).map(async id => {
+    const st = state[id]; if (!st || st.busy) return;
     try {
       const d = await api('GET', `/manager/devices/device/${id}`);
+      if (state[id] !== st) return;
       const c = d.capabilitiesObj || {};
       st.on = !!(c.onoff && c.onoff.value);
+      st.avail = d.available !== false;
       st.dim = (c.dim && typeof c.dim.value === 'number') ? c.dim.value : (st.on ? 1 : 0);
       if (st.z.sw){
-        st.avail = d.available !== false;
         st.power = (c.measure_power && typeof c.measure_power.value === 'number') ? c.measure_power.value : null;
-        paint(id); if (statusEl.textContent.startsWith('Ansluter')) status(''); return;
-      }
-      st.el.querySelector('.temps').style.visibility = c.light_temperature ? '' : 'hidden';
-      st.temp = (c.light_temperature && typeof c.light_temperature.value === 'number') ? c.light_temperature.value : null;
-      st.mode = c.light_mode ? c.light_mode.value : null;
-      if (st.z.colors){
-        const m = await api('GET', `/manager/devices/device/${st.z.colors[0]}`);
-        const mc = m.capabilitiesObj || {};
-        st.mode = mc.light_mode ? mc.light_mode.value : st.mode;
-        st.hue = mc.light_hue ? mc.light_hue.value : null;
-        if (mc.light_temperature) st.temp = mc.light_temperature.value;
+      } else {
+        const tp = st.el.querySelector('.tscale'); if (tp) tp.style.visibility = c.light_temperature ? '' : 'hidden';
+        st.temp = (c.light_temperature && typeof c.light_temperature.value === 'number') ? c.light_temperature.value : null;
+        st.mode = c.light_mode ? c.light_mode.value : null;
+        if (st.z.colors){
+          const m = await api('GET', `/manager/devices/device/${st.z.colors[0]}`);
+          const mc = m.capabilitiesObj || {};
+          st.mode = mc.light_mode ? mc.light_mode.value : st.mode;
+          st.hue = mc.light_hue ? mc.light_hue.value : null;
+          if (mc.light_temperature) st.temp = mc.light_temperature.value;
+        }
       }
       paint(id);
       if (statusEl.textContent.startsWith('Ansluter')) status('');
@@ -439,7 +626,7 @@ function showSetup(first){
 }
 function showApp(){
   $('#setup').classList.add('hidden'); $('#app').classList.remove('hidden');
-  status('Ansluter…'); refresh();
+  if (!DEMO) status('Ansluter…'); refresh();
 }
 $('#saveBtn').onclick = async () => {
   const id = $('#homeyId').value.trim(), key = $('#apiKey').value.trim();
@@ -455,12 +642,14 @@ $('#saveBtn').onclick = async () => {
 $('#cancelBtn').onclick = () => { cfg.key = store.get('apiKey') || ''; showApp(); };
 $('#settingsBtn').onclick = () => showSetup(false);
 
+// gemensam gradient för alla mätare
+document.body.insertAdjacentHTML('afterbegin', '<svg width="0" height="0" style="position:absolute"><defs><linearGradient id="ag" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#E07A2E"/><stop offset="1" stop-color="#FFD7A6"/></linearGradient></defs></svg>');
+greet(); setInterval(greet, 60000);
 renderTabs(); renderScenes(); render();
-if (cfg.key) showApp(); else showSetup(true);
+if (cfg.key || DEMO) showApp(); else showSetup(true);
 setInterval(refresh, 5000);
 document.addEventListener('visibilitychange', () => { if (!document.hidden) refresh(); });
-
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if (!DEMO && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
 </script>
 </body>
 </html>
