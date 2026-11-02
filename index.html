@@ -108,9 +108,9 @@ button{font-family:inherit;font-weight:inherit}
     linear-gradient(90deg, rgba(190,215,255,.16), rgba(255,240,215,.10), rgba(255,170,90,.22))}
 .knob{position:absolute;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;background:rgba(40,26,16,.85);border:1px solid rgba(255,220,180,.6);box-shadow:0 0 14px rgba(255,181,107,.45);display:flex;align-items:center;justify-content:center;gap:2px;transition:left .2s}
 .knob i{width:2.5px;height:2.5px;border-radius:50%;background:#F4ECE2}
-.colors{display:none;justify-content:space-between;gap:6px;margin-top:12px}
-.zone.on .colors{display:flex}
-.c{width:22px;height:22px;border-radius:50%;flex-shrink:0;border:2px solid transparent;outline:1px solid transparent;outline-offset:2px;box-shadow:0 0 10px currentColor}
+.colors{display:none;grid-template-columns:repeat(8,minmax(0,1fr));gap:5px;margin-top:12px}
+.zone.on .colors{display:grid}
+.c{width:100%;max-width:24px;aspect-ratio:1;justify-self:center;border-radius:50%;border:2px solid transparent;outline:1px solid transparent;outline-offset:2px;box-shadow:0 0 10px currentColor}
 .c.sel{outline-color:var(--amber)}
 
 /* strömbrytare */
@@ -228,7 +228,13 @@ const PAGES = [
       { id: '56422ee9-3796-4615-b693-3204c9f92da0', name: 'Gästrum öv', icon: 'bed' },
     ]},
   ]},
-  { key: 'garage', name: 'Garage', sections: [], empty: 'Det finns inga lampor i garaget i Homey ännu. När du lägger till lampor där kan jag lägga in dem här.' },
+  { key: 'garage', name: 'Garage', sections: [
+    { name: 'Garage', zones: [
+      { id: 'd535a88b-a510-463a-b1fd-314e82fe057a', name: 'LED COB Fönster', icon: 'house', wide: true, colors: ['d535a88b-a510-463a-b1fd-314e82fe057a'] },
+      { id: '23c81e00-2382-4497-8b94-5ac39c78f2fd', name: 'Rambelysning över/under 150 W', icon: 'tv', wide: true, colors: ['23c81e00-2382-4497-8b94-5ac39c78f2fd'] },
+      { id: '0f25ab18-deb7-4407-80a0-1ecedc51a86d', name: 'Rambelysning sidor 75 W', icon: 'tv', wide: true, colors: ['0f25ab18-deb7-4407-80a0-1ecedc51a86d'] },
+    ]},
+  ]},
   { key: 'ute', name: 'Utomhus', sections: [
     { name: 'Fasad & uppfart', zones: [
       { id: 'd2bce7a1-fd89-4226-b907-8f724d66858d', name: 'All utebelysning', icon: 'house', wide: true },
