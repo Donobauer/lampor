@@ -55,9 +55,9 @@ button{font-family:inherit;font-weight:inherit}
 .status.err{color:var(--danger)}
 
 /* scener */
-.scenes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:8px}
-.scene{border:none;background:none;color:var(--mut);padding:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11.5px;font-weight:400;letter-spacing:.2px}
-.scene .ic{width:54px;height:54px;border-radius:50%;background:var(--card);border:1px solid var(--edge);display:flex;align-items:center;justify-content:center;color:var(--amber);transition:transform .1s, background .25s, box-shadow .25s}
+.scenes{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px;margin-bottom:8px}
+.scene{border:none;background:none;color:var(--mut);padding:0;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:11px;font-weight:400;letter-spacing:.1px;line-height:1.25;text-align:center}
+.scene .ic{width:52px;height:52px;flex-shrink:0;border-radius:50%;background:var(--card);border:1px solid var(--edge);display:flex;align-items:center;justify-content:center;color:var(--amber);transition:transform .1s, background .25s, box-shadow .25s}
 .scene:active .ic{transform:scale(.92)}
 .scene.off .ic{color:var(--danger)}
 .scene.done .ic{background:rgba(255,181,107,.18);box-shadow:0 0 24px rgba(224,122,46,.5)}
@@ -278,11 +278,14 @@ const PAGES = [
   ]},
 ];
 const SCENES = [
-  { label: 'Släck allt', icon: 'power', flow: 'd3df50de-348d-425c-bfce-6450b8e2152d', primary: true },
+  { label: 'Släck hela huset', icon: 'power', flow: 'ef84b1da-c35d-4c70-94af-90c59bde4c47', primary: true },
+  { label: 'Släck zon', icon: 'power', zone: true, primary: true },
   { label: 'Tänd nere', icon: 'sun', flow: 'b3983278-1f69-42f1-96a4-ce9a1a185cb5' },
   { label: 'Kväll', icon: 'moon', flow: '5c685373-58ce-4532-94ed-11891f5737e1' },
   { label: 'TV', icon: 'tv', flow: '89d79a92-b486-4a46-bfa9-d901c49ef3fd' },
 ];
+// "Släck zon" släcker bara våningen som visas (garage, utomhus och strömbrytare har inga släckknappar)
+const ZONE_OFF = { botten: '948c9f74-cc7f-4db5-bdfe-8777e40eb116', over: '4dcbaa53-a4e0-48f7-afd6-9904c01852dd' };
 
 const COLORS = [ ['Röd',0,'#FF5A5F'], ['Orange',0.07,'#FF9440'], ['Gul',0.14,'#FFD93D'], ['Grön',0.33,'#4CD47A'], ['Turkos',0.5,'#2ED1D1'], ['Blå',0.63,'#4D84FF'], ['Lila',0.76,'#9C6BFF'], ['Rosa',0.9,'#FF4F9A'] ];
 const HOLD_MS = 380, STEP = 0.06, TICK_MS = 220, REVERSE_WINDOW_MS = 4000, MIN_DIM = 0.01;
@@ -384,7 +387,8 @@ function render(){
   const page = PAGES.find(p => p.key === currentPage);
   $('#title').textContent = page.name;
   $('.help').textContent = page.sw ? HELP_SW : HELP_LAMP;
-  $('#scenes').classList.toggle('hidden', !!page.sw);
+  $('#scenes').classList.toggle('hidden', !ZONE_OFF[page.key]);
+  renderScenes();
   renderHero();
   if (page.empty && !page.sections.length){
     const e = document.createElement('div'); e.className = 'empty'; e.textContent = page.empty; floors.appendChild(e);
@@ -582,7 +586,9 @@ function vibrate(ms){ try { navigator.vibrate && navigator.vibrate(ms) } catch(e
 async function runScene(s, btn){
   btn.disabled = true; vibrate(20);
   try {
-    await api('POST', `/manager/flow/flow/${s.flow}/trigger`);
+    const flow = s.zone ? ZONE_OFF[currentPage] : s.flow;
+    if (!flow) return;
+    await api('POST', `/manager/flow/flow/${flow}/trigger`);
     btn.classList.add('done'); setTimeout(() => btn.classList.remove('done'), 1200);
     status(''); setTimeout(refresh, 1500);
   } catch(err){ status('Scen ' + s.label + ': ' + err.message, true); }
