@@ -26,6 +26,9 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;tr
     radial-gradient(70% 40% at 100% 100%, rgba(224,122,46,.10), transparent 70%),
     var(--bg)}
 button{font-family:inherit;font-weight:inherit}
+#heroBg{position:absolute;left:0;right:0;top:0;height:min(92vw,520px);background:center top/cover no-repeat;z-index:0;pointer-events:none;opacity:.9;-webkit-mask-image:linear-gradient(to bottom,#000 40%,transparent 100%);mask-image:linear-gradient(to bottom,#000 40%,transparent 100%);transition:opacity .3s}
+#heroBg::after{content:"";position:absolute;inset:0;background:linear-gradient(rgba(17,12,8,.45),rgba(17,12,8,.15) 35%,rgba(17,12,8,.25))}
+#app,#setup{position:relative;z-index:1}
 .hidden{display:none!important}
 
 /* topprad */
@@ -143,6 +146,7 @@ button{font-family:inherit;font-weight:inherit}
 </style>
 </head>
 <body>
+<div id="heroBg"></div>
 
 <section id="setup" class="setup hidden">
   <h2>Koppla till Homey</h2>
@@ -386,6 +390,7 @@ function render(){
   for (const k of Object.keys(state)) delete state[k];
   const page = PAGES.find(p => p.key === currentPage);
   $('#title').textContent = page.name;
+  $('#heroBg').style.backgroundImage = `url(hero-${page.key}.jpg)`;
   $('.help').textContent = page.sw ? HELP_SW : HELP_LAMP;
   $('#scenes').classList.toggle('hidden', !ZONE_OFF[page.key]);
   renderScenes();
