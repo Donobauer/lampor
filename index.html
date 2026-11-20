@@ -529,9 +529,19 @@ function bindZone(z, el){
     const at = e => { const r = track.getBoundingClientRect(); return Math.round(Math.max(0, Math.min(1, (e.clientX - r.left - 11) / (r.width - 22))) * 20) / 20; };
     const send = async () => {
       const st = s();
+      // Färglampor (t.ex. ledlister) står kvar i färgläge om man bara skickar temperatur:
+      // byt först till vitt läge, skicka temperaturen och upprepa den när lampan hunnit byta läge.
+      const tillVitt = async id => {
+        await setCap(id, 'light_mode', 'temperature').catch(()=>{});
+        await setCap(id, 'light_temperature', st.temp);
+        await new Promise(r => setTimeout(r, 1200));
+        await setCap(id, 'light_temperature', st.temp).catch(()=>{});
+      };
       try {
-        if (z.colors) await Promise.all(z.colors.map(id => setCap(id, 'light_temperature', st.temp).catch(()=>{})));
-        else await setCap(z.id, 'light_temperature', st.temp);
+        const ids = z.colors || [z.id];
+        const res = await Promise.allSettled(ids.map(tillVitt));
+        const bad = res.filter(r => r.status === 'rejected').length;
+        if (bad) status(bad + ' av ' + ids.length + ' lampor ville inte byta till vitt', true); else status('');
       } catch(err){ status('Kunde inte ändra färgtemperatur: ' + err.message, true); }
     };
     track.addEventListener('pointerdown', e => { e.stopPropagation(); dragging = true; track.setPointerCapture(e.pointerId); const st = s(); st.temp = at(e); st.mode = 'temperature'; paint(z.id); vibrate(10); });
